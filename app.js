@@ -142,8 +142,8 @@ function badge(r,{size=56,locked=false}={}){
   return `<svg class="badge${locked?" locked":""}" width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true" style="--c:${c}">
     <path d="M50 4 L88 18 V48 C88 72 72 88 50 97 C28 88 12 72 12 48 V18 Z" fill="${c}" fill-opacity=".16" stroke="${c}" stroke-width="3"/>
     <path d="M50 14 L78 25 V48 C78 66 66 78 50 85 C34 78 22 66 22 48 V25 Z" fill="none" stroke="${c}" stroke-opacity=".35" stroke-width="1.5"/>
-    <path d="M50 24 L68 36 L62 58 H38 L32 36 Z" fill="${c}" fill-opacity="${locked?.25:.9}"/>
-    <path d="M50 24 L68 36 L50 42 L32 36 Z" fill="#fff" fill-opacity="${locked?.05:.35}"/>
+    <path d="M50 22 L55.3 35.7 L70 36.5 L58.6 45.8 L62.3 60 L50 52 L37.7 60 L41.4 45.8 L30 36.5 L44.7 35.7 Z" fill="${c}" fill-opacity="${locked?.25:.9}" stroke-linejoin="round"/>
+    <path d="M50 22 L55.3 35.7 L50 43 L44.7 35.7 Z" fill="#fff" fill-opacity="${locked?.05:.35}"/>
     <text x="50" y="78" text-anchor="middle" font-size="13" font-weight="800" fill="${c}" font-family="Georgia,serif">${esc(r.div)}</text>
     ${locked?'<g transform="translate(14 68)"><rect x="0" y="8" width="16" height="13" rx="3" fill="#5a5a66"/><path d="M4 8 V5 a4 4 0 0 1 8 0 V8" fill="none" stroke="#5a5a66" stroke-width="2.5"/></g>':""}
   </svg>`;
