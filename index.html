@@ -15,7 +15,16 @@
 <main class="app">
 <header class="topbar">
   <div><div class="eyebrow">LIFESTYLE // DISCIPLINE SYSTEM</div><h1 id="greeting">GOOD EVENING</h1></div>
-  <button id="topProfile" class="ghost" type="button">Profile</button>
+  <div class="menu-wrap">
+    <button id="menuBtn" class="menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menuList"><span id="menuLabel">Home</span><b aria-hidden="true">▾</b></button>
+    <div id="menuList" class="menu-list hidden" role="menu" aria-label="Main navigation">
+      <button class="nav-btn menu-item active" data-page="home" type="button" role="menuitem"><b>⌂</b><span>Home</span></button>
+      <button class="nav-btn menu-item" data-page="program" type="button" role="menuitem"><b>⬡</b><span>Program</span></button>
+      <button class="nav-btn menu-item" data-page="progress" type="button" role="menuitem"><b>★</b><span>Progress</span></button>
+      <button class="nav-btn menu-item" data-page="lab" type="button" role="menuitem"><b>◷</b><span>Lab</span></button>
+      <button class="nav-btn menu-item" data-page="profile" type="button" role="menuitem"><b>◎</b><span>Profile</span></button>
+    </div>
+  </div>
 </header>
 
 <!-- HOME -->
@@ -217,13 +226,6 @@
   </section>
 </section>
 
-<nav class="nav" aria-label="Main navigation">
-  <button class="nav-btn active" data-page="home" type="button"><b>⌂</b><span>Home</span></button>
-  <button class="nav-btn" data-page="program" type="button"><b>⬡</b><span>Program</span></button>
-  <button class="nav-btn" data-page="progress" type="button"><b>★</b><span>Progress</span></button>
-  <button class="nav-btn" data-page="lab" type="button"><b>◷</b><span>Lab</span></button>
-  <button class="nav-btn" data-page="profile" type="button"><b>◎</b><span>Profile</span></button>
-</nav>
 
 <div id="goalModal" class="modal hidden">
   <div class="modal-card">

@@ -573,6 +573,7 @@ function toast(s,ms=2200){const e=$("toast");e.textContent=s;clearTimeout(toast.
 function nav(page){
   document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===page));
   document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+  $("menuLabel").textContent=PAGE_NAMES[page]||"Menu";setMenu(false);
   if(page==="program")renderProgram(),renderChallenges();
   if(page==="progress")renderProgress();
   if(page==="lab")renderLab();
@@ -650,7 +651,12 @@ function readStepHash(){
 /* ---------- wiring ---------- */
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.page)));
 document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.back)));
-$("topProfile").addEventListener("click",()=>nav("profile"));
+// Top-right dropdown menu replaces the old bottom nav bar.
+const PAGE_NAMES={home:"Home",program:"Program",progress:"Progress",lab:"Lab",profile:"Profile",goals:"Goals"};
+function setMenu(open){$("menuList").classList.toggle("hidden",!open);$("menuBtn").setAttribute("aria-expanded",String(open));$("menuBtn").classList.toggle("open",open)}
+$("menuBtn").addEventListener("click",e=>{e.stopPropagation();setMenu($("menuList").classList.contains("hidden"))});
+document.addEventListener("click",e=>{if(!e.target.closest(".menu-wrap"))setMenu(false)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")setMenu(false)});
 $("editGoals").addEventListener("click",()=>nav("goals"));
 $("manageGoals").addEventListener("click",()=>nav("goals"));
 $("addGoalBtn").addEventListener("click",()=>openGoal());$("addGoalBtn2").addEventListener("click",()=>openGoal(undefined,true));
