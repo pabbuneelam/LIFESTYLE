@@ -541,8 +541,9 @@ function showUndo(msg,snapshot){
   $("undoBtn").onclick=()=>{clearTimeout(undoTimer);$("undoBar").classList.add("hidden");state={...fresh(),...JSON.parse(snapshot)};render();toast("Restored.")};
 }
 // Guess difficulty from the wording: time, amounts, early wake-ups, limits and tell-tale phrases. 1 easy, 2 medium, 3 hard.
-const HARD_RE=/\b(no (social media|sugar|junk|phone|youtube|tiktok|reels|shorts|complaining|caffeine|alcohol)\b|whole day|all day|entire day|cold (shower|plunge|water)|fasting|marathon|inbox to zero|interview|apply|publish|pitch|scares|spend 0|finish one chapter|90 days)/;
-const EASY_RE=/\b(text|call|message|voice note|thank|compliment|smile|make my bed|drink|stretch|grateful|gratitude|breath|breathing|note|hug|set out|name one|notice|listen to music|nap|say yes)\b/;
+// Big outcomes and all-day abstinence are hard; quick, low-effort habits are easy.
+const HARD_RE=/\b(no (social media|sugar|junk|phone|youtube|tiktok|reels|shorts|complaining|caffeine|alcohol|porn|vaping|weed)\b|whole day|all day|entire day|cold (shower|plunge|water)|fasting|marathon|triathlon|ironman|inbox to zero|interview|apply|publish|pitch|scares|spend 0|finish one chapter|90 days|internship|(land|get|find|secure) (a |an |the |my )?(new )?(job|internship|offer|role|position|client|sponsor)|job offer|get hired|promot(ed|ion)|(ask|get) (for )?a raise|start (a|my) (business|company|side hustle)|launch|(pass|ace) (the |my |an? )?(exam|test|final|midterm|interview)|get into (college|university|grad school)|scholarship|certification|finish (the|my|a) (project|book|thesis|app|course|degree|portfolio)|write (a|my) (book|thesis|essay|paper)|quit (smoking|vaping|drinking|weed|porn|caffeine|sugar)|lose \d+ ?(lbs?|pounds?|kg|kilos?)|personal record|\bpr\b|deadlift|max out)/;
+const EASY_RE=/\b(text|call|message|voice note|thank|compliment|smile|make (my|the) bed|drink|water (the )?plants|stretch|grateful|gratitude|breath|breathing|note|hug|set out|name one|notice|listen to music|nap|say yes|wake up (early|on time|at my planned time)|get up early|on time|vitamins?|supplements?|floss|brush|skincare|eat breakfast|pray|prayer|pack my bag|plan tomorrow|plan (my|the) day|set (an |my )?alarm|go outside|get sunlight|take out the trash|tidy|walk the dog|feed|reply|check in)\b/;
 const MEDIUM_RE=/(work ?out|\brun\b|study|practi[sc]e|revis|research|build|cook|plan|meditat|journal|read|learn|write|clean|organi[sz]e|declutter|walk|swim|bike|yoga|volunteer|project|apologi|someone new|meetup|event|track|review|teach|save)/;
 function estimateDifficulty(text){
   const t=" "+text.toLowerCase().replace(/(\d),(\d)/g,"$1$2")+" ",n=parseFloat;let lvl=0,rest=t;
@@ -772,6 +773,10 @@ window.LIFESTYLE={
   setState(s){state={...fresh(),...s};progWeek=null;mood=null;render()},
   onSave:f=>hooks.save.push(f),onReset:f=>hooks.reset.push(f)
 };
+
+// One-time: re-rate existing goals with the updated difficulty rules. Past days' XP is untouched; for goals already
+// ticked today, today's XP moves by the difference so unticking them stays balanced.
+if((state.diffVersion||1)<2){const doneToday=new Set(doneOn(today()));active().forEach(g=>{const xp=xpForDiff(estimateDifficulty(g.name));if(doneToday.has(g.id))state.xp=Math.max(0,state.xp+xp-g.xp);g.xp=xp});state.diffVersion=2}
 
 updateTimer();render();readStepHash();checkStepReturn();
 // Check for a new version on every launch and resume; reload once it takes over, but never while someone is typing.
