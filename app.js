@@ -395,16 +395,39 @@ function renderProgress(){
   $("daysDone").textContent=hist.filter(x=>x.completed).length;
   $("avgScore").textContent=(hist.length?Math.round(hist.reduce((a,x)=>a+(x.score||0),0)/hist.length):0)+"%";
 }
+// The life radar is a smooth, rounded shape that grows out from the centre when Progress opens
+// and eases to new values when scores change.
+let radarShown=null,radarAnim=0;
 function drawRadar(values){
+  const target=values.map(v=>Math.max(.06,v/100)),from=radarShown||target.map(()=>.06);
+  if(radarShown&&target.every((v,i)=>Math.abs(v-radarShown[i])<1e-3)){paintRadar(target);return}
+  cancelAnimationFrame(radarAnim);
+  const t0=performance.now(),dur=900;
+  const step=now=>{
+    const p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);
+    radarShown=target.map((v,i)=>from[i]+(v-from[i])*e);paintRadar(radarShown);
+    if(p<1)radarAnim=requestAnimationFrame(step);
+  };
+  radarAnim=requestAnimationFrame(step);
+}
+function paintRadar(f){
   const canvas=$("radar"),ctx=canvas.getContext("2d"),dpr=window.devicePixelRatio||1,size=320;
   canvas.width=size*dpr;canvas.height=size*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,size,size);
-  const cx=160,cy=160,r=100,n=6,pt=(i,f)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+Math.cos(a)*r*f,cy+Math.sin(a)*r*f]};
-  const poly=f=>{ctx.beginPath();for(let i=0;i<n;i++){const[x,y]=pt(i,typeof f==="function"?f(i):f);i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath()};
-  ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,.14)";
-  [1,.66,.33].forEach(f=>{poly(f);ctx.stroke()});
-  poly(i=>Math.max(.06,values[i]/100));
-  ctx.fillStyle="rgba(190,190,200,.42)";ctx.fill();
-  ctx.save();ctx.shadowColor="rgba(255,255,255,.85)";ctx.shadowBlur=16;ctx.lineWidth=2.5;ctx.strokeStyle="#fff";ctx.stroke();ctx.restore();
+  const cx=160,cy=160,r=100,n=6,pt=(i,k)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+Math.cos(a)*r*k,cy+Math.sin(a)*r*k]};
+  ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,.12)";
+  [1,.66,.33].forEach(k=>{ctx.beginPath();for(let i=0;i<n;i++){const[x,y]=pt(i,k);i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.stroke()});
+  // Closed Catmull-Rom spline through the six scores; CURVE softens the corners (1/6 = fully rounded, 0 = straight).
+  const P=f.map((k,i)=>pt(i,k)),CURVE=1/24;
+  ctx.beginPath();ctx.moveTo(P[0][0],P[0][1]);
+  for(let i=0;i<n;i++){
+    const p0=P[(i+n-1)%n],p1=P[i],p2=P[(i+1)%n],p3=P[(i+2)%n];
+    ctx.bezierCurveTo(p1[0]+(p2[0]-p0[0])*CURVE,p1[1]+(p2[1]-p0[1])*CURVE,p2[0]-(p3[0]-p1[0])*CURVE,p2[1]-(p3[1]-p1[1])*CURVE,p2[0],p2[1]);
+  }
+  ctx.closePath();
+  const fill=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+  fill.addColorStop(0,"rgba(255,255,255,.42)");fill.addColorStop(1,"rgba(170,170,185,.16)");
+  ctx.fillStyle=fill;ctx.fill();
+  ctx.save();ctx.shadowColor="rgba(255,255,255,.8)";ctx.shadowBlur=18;ctx.lineWidth=2.5;ctx.lineJoin="round";ctx.strokeStyle="#fff";ctx.stroke();ctx.restore();
   ctx.textAlign="center";ctx.font="600 12px system-ui";
   CATS.forEach((c,i)=>{const[x,y]=pt(i,1.24);ctx.fillStyle=CATEGORIES[c].color;ctx.fillText(CATEGORIES[c].name,x,y+4)});
 }
@@ -591,7 +614,7 @@ function nav(page){
   document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
   $("menuLabel").textContent=PAGE_NAMES[page]||"Menu";setMenu(false);
   if(page==="program")renderProgram(),renderChallenges();
-  if(page==="progress")renderProgress();
+  if(page==="progress"){radarShown=null;renderProgress()}
   if(page==="lab")renderLab();
   if(page==="profile")renderProfile();
   window.scrollTo({top:0,behavior:"instant"});
