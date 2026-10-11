@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="LIFESTYLE">
 <link rel="manifest" href="manifest.json">
 <title>LIFESTYLE — Discipline System</title>
-<link rel="stylesheet" href="style.css?v=20261011160134">
+<link rel="stylesheet" href="style.css?v=20261011160650">
 </head>
 <body>
 <main class="app">
@@ -230,7 +230,7 @@
 <div id="goalModal" class="modal hidden">
   <div class="modal-card">
     <div class="modal-head"><div><span class="label">NEW GOAL</span><h2>Add a goal</h2></div><button id="closeGoal" class="ghost" type="button">Close</button></div>
-    <label class="field"><span>Area</span><select id="goalCategory"></select></label>
+    <div class="field"><span>Area</span><select id="goalCategory" aria-label="Area"></select></div>
     <label class="field"><span>Your goal</span><input id="goalInput" maxlength="80" placeholder="e.g. Read for 20 minutes" autocomplete="off"></label>
     <div class="field"><span>Difficulty</span><div id="goalDiff" class="diff-display"></div></div>
     <label class="repeat-toggle"><span><b>Repeat every day</b><small id="repeatHint"></small></span><input id="goalRepeat" class="switch" type="checkbox" role="switch"></label>
@@ -245,7 +245,7 @@
     <div class="modal-head"><div><span class="label">NEW CHALLENGE</span><h2>Start an arc</h2></div><button id="closeChallenge" class="ghost" type="button">Close</button></div>
     <label class="field"><span>Name</span><input id="chName" maxlength="40" placeholder="e.g. Winter Arc" autocomplete="off"></label>
     <label class="field"><span>What do you do each day?</span><input id="chTask" maxlength="80" placeholder="e.g. Train, read, no junk food" autocomplete="off"></label>
-    <label class="field"><span>Area</span><select id="chCategory"></select></label>
+    <div class="field"><span>Area</span><select id="chCategory" aria-label="Area"></select></div>
     <label class="field"><span>Length</span><select id="chDays"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="90">90 days</option></select></label>
     <button id="saveChallenge" class="primary wide" type="button">Start challenge</button>
   </div>
@@ -255,7 +255,7 @@
 <div id="undoBar" class="undo-bar hidden" role="status"><span id="undoText"></span><button id="undoBtn" type="button">Undo</button></div>
 <div id="toast" class="toast fixed-toast" aria-live="polite"></div>
 </main>
-<script src="app.js?v=20261011160134"></script>
-<script type="module" src="cloud.js?v=20261011160134"></script>
+<script src="app.js?v=20261011160650"></script>
+<script type="module" src="cloud.js?v=20261011160650"></script>
 </body>
 </html>

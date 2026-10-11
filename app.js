@@ -647,6 +647,7 @@ function openGoal(category,repeat){
   $("goalModal").classList.remove("hidden");
   $("goalCategory").innerHTML=CATS.map(c=>`<option value="${c}">${CATEGORIES[c].icon} ${CATEGORIES[c].name}</option>`).join("");
   if(category)$("goalCategory").value=category;
+  syncGoalArea();
   $("goalInput").value="";autoDifficulty();$("ideaList").classList.add("hidden");$("goalInput").focus();
 }
 function repeatHint(){const k=viewKey(),day=fmtDate(k,{weekday:"long",month:"short",day:"numeric"});$("repeatHint").textContent=$("goalRepeat").checked?(k===today()?"Shows up every day":"Every day starting "+day):`Only on ${k===today()?"today":day}`}
@@ -760,6 +761,28 @@ function readStepHash(){
   const n=parseStepText(m[1]);if(n!==null)applySteps(n);
 }
 
+// Area picker: a native <select> can't show coloured hexagons, so it stays hidden (holding the value and
+// firing "change") and a custom dropdown shows each area as its hexagon and name in its colour.
+function areaPicker(selectId){
+  const sel=$(selectId),wrap=document.createElement("div");wrap.className="area-picker";
+  wrap.innerHTML='<button type="button" class="area-current" aria-haspopup="listbox" aria-expanded="false"></button><div class="area-options hidden" role="listbox"></div>';
+  sel.classList.add("visually-hidden");sel.tabIndex=-1;sel.after(wrap);
+  const btn=wrap.querySelector(".area-current"),list=wrap.querySelector(".area-options");
+  const label=c=>`${hex(CATEGORIES[c].color)}<span style="color:${CATEGORIES[c].color}">${CATEGORIES[c].name}</span>`;
+  const open=v=>{list.classList.toggle("hidden",!v);btn.setAttribute("aria-expanded",String(v))};
+  const sync=()=>{
+    const cur=CATEGORIES[sel.value]?sel.value:CATS[0];
+    btn.innerHTML=label(cur)+'<b aria-hidden="true">▾</b>';
+    list.innerHTML=CATS.map(c=>`<button type="button" role="option" data-c="${c}" aria-selected="${c===cur}" class="${c===cur?"sel":""}">${label(c)}</button>`).join("");
+    open(false);
+  };
+  btn.addEventListener("click",()=>open(list.classList.contains("hidden")));
+  list.addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;sel.value=b.dataset.c;sel.dispatchEvent(new Event("change"));sync()});
+  document.addEventListener("click",e=>{if(!wrap.contains(e.target))open(false)});
+  return sync;
+}
+const syncGoalArea=areaPicker("goalCategory"),syncChArea=areaPicker("chCategory");
+
 /* ---------- wiring ---------- */
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.page)));
 document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.back)));
@@ -783,6 +806,7 @@ $("ideasBtn").addEventListener("click",()=>showIdeas(true));$("goalCategory").ad
 
 $("newChallenge").addEventListener("click",()=>{
   $("chCategory").innerHTML=CATS.map(c=>`<option value="${c}">${CATEGORIES[c].icon} ${CATEGORIES[c].name}</option>`).join("");
+  syncChArea();
   $("chName").value="";$("chTask").value="";$("challengeModal").classList.remove("hidden");$("chName").focus();
 });
 $("closeChallenge").addEventListener("click",()=>$("challengeModal").classList.add("hidden"));
