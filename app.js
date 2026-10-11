@@ -571,7 +571,16 @@ function estimateDifficulty(text){
   return EASY_RE.test(t)?1:MEDIUM_RE.test(t)?2:2;
 }
 const DIFF=["","Easy","Medium","Hard"],xpForDiff=d=>d*10;
+// Rate once the user stops typing (or leaves the field), so the label doesn't flicker on half-written goals.
+let diffTimer=0;
+function difficultyWhileTyping(){
+  clearTimeout(diffTimer);
+  if(!$("goalInput").value.trim()){autoDifficulty();return}
+  $("goalDiff").className="diff-display pending";$("goalDiff").textContent="Rating when you finish typing…";
+  diffTimer=setTimeout(autoDifficulty,800);
+}
 function autoDifficulty(){
+  clearTimeout(diffTimer);
   const v=$("goalInput").value.trim();
   const d=v?estimateDifficulty(v):0;
   $("goalDiff").className="diff-display"+(d?" d"+d:"");
@@ -705,7 +714,8 @@ $("prevDay").addEventListener("click",()=>setViewDay(addDays(viewKey(),-1)));
 $("nextDay").addEventListener("click",()=>setViewDay(addDays(viewKey(),1)));
 $("closeGoal").addEventListener("click",closeGoal);$("saveGoal").addEventListener("click",addGoal);
 $("goalInput").addEventListener("keydown",e=>{if(e.key==="Enter")addGoal()});
-$("goalInput").addEventListener("input",autoDifficulty);
+$("goalInput").addEventListener("input",difficultyWhileTyping);
+$("goalInput").addEventListener("blur",autoDifficulty);
 $("ideasBtn").addEventListener("click",()=>showIdeas(true));$("goalCategory").addEventListener("change",()=>{if(!$("ideaList").classList.contains("hidden"))showIdeas(true)});
 
 $("newChallenge").addEventListener("click",()=>{
