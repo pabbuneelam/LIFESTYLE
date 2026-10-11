@@ -671,6 +671,7 @@ function nav(page){
   if(page==="lab")renderLab();
   if(page==="profile")renderProfile();
   window.scrollTo({top:0,behavior:"instant"});
+  checkStepReturn();
 }
 
 /* ---------- Apple Health steps (via iOS Shortcut) ---------- */
@@ -716,9 +717,9 @@ const showStepBanner=(msg="Back from Shortcuts?",btn="Import steps")=>{$("stepBa
 const STEP_STALE_MS=30*60*1000;let stepPromptSnooze=0;
 const stepsStale=()=>!!state.stepSync&&Date.now()-state.stepSync>STEP_STALE_MS&&Date.now()>stepPromptSnooze;
 // Kept in localStorage with a timestamp: iOS may reload the app while Shortcuts runs, which would wipe sessionStorage.
-function syncPending(set){try{
+function syncPending(set,peek){try{
   if(set){localStorage.setItem("lifestyle_step_pending",String(Date.now()));return true}
-  const v=Number(localStorage.getItem("lifestyle_step_pending"));localStorage.removeItem("lifestyle_step_pending");
+  const v=Number(localStorage.getItem("lifestyle_step_pending"));if(!peek)localStorage.removeItem("lifestyle_step_pending");
   return v>0&&Date.now()-v<15*60*1000;
 }catch(e){return false}}
 async function importSteps(){
@@ -772,7 +773,7 @@ $("saveChallenge").addEventListener("click",()=>{
   $("challengeModal").classList.add("hidden");render();toast(name+" started.");
 });
 
-document.querySelectorAll(".seg").forEach(b=>b.addEventListener("click",()=>{labTab=b.dataset.lab;renderLab()}));
+document.querySelectorAll(".seg").forEach(b=>b.addEventListener("click",()=>{labTab=b.dataset.lab;renderLab();checkStepReturn()}));
 document.querySelectorAll(".chip[data-min]").forEach(b=>b.addEventListener("click",()=>{
   if(timerId)return toast("Reset the timer to change length.");
   document.querySelectorAll(".chip[data-min]").forEach(x=>x.classList.toggle("active",x===b));
@@ -816,7 +817,18 @@ $("shortcutName").addEventListener("change",()=>{state.shortcutName=$("shortcutN
 $("importSteps").addEventListener("click",importSteps);
 $("stepBannerBtn").addEventListener("click",importSteps);
 $("stepBannerClose").addEventListener("click",()=>{hideStepBanner();stepPromptSnooze=Date.now()+STEP_STALE_MS});
-const checkStepReturn=()=>{if(document.hidden)return;if(syncPending())showStepBanner();else if(stepsStale()&&$("stepBanner").classList.contains("hidden"))showStepBanner("Update today's steps from Health?","Update steps")};
+// The step prompt only appears on Lab → Tracker. Coming back from the Sync shortcut jumps there first.
+const onTracker=()=>$("lab").classList.contains("active")&&labTab==="trackerTab";
+const checkStepReturn=()=>{
+  if(document.hidden)return;
+  if(!onTracker()){
+    hideStepBanner();
+    if(syncPending(undefined,true)){labTab="trackerTab";nav("lab")} // nav() re-runs this check on the Tracker
+    return;
+  }
+  if(syncPending())showStepBanner();
+  else if(stepsStale()&&$("stepBanner").classList.contains("hidden"))showStepBanner("Update today's steps from Health?","Update steps");
+};
 document.addEventListener("visibilitychange",checkStepReturn);window.addEventListener("pageshow",checkStepReturn);window.addEventListener("focus",checkStepReturn);
 window.addEventListener("hashchange",readStepHash);
 
