@@ -420,11 +420,9 @@ function paintRadar(f){
   const canvas=$("radar"),ctx=canvas.getContext("2d"),dpr=window.devicePixelRatio||1,size=320;
   canvas.width=size*dpr;canvas.height=size*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,size,size);
   const cx=160,cy=160,r=100,n=6,pt=(i,k)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+Math.cos(a)*r*k,cy+Math.sin(a)*r*k]};
-  // Grid rings sit at scores 25 / 50 / 75 / 100 on the square-root scale, labelled up the top axis.
+  // Grid rings sit at scores 25 / 50 / 75 / 100 on the square-root scale.
   ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,.12)";
   [100,75,50,25].forEach(v=>{const k=radarRadius(v);ctx.beginPath();for(let i=0;i<n;i++){const[x,y]=pt(i,k);i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.stroke()});
-  ctx.fillStyle="rgba(255,255,255,.28)";ctx.font="600 8px system-ui";ctx.textAlign="left";
-  [25,50,75].forEach(v=>{const[x,y]=pt(0,radarRadius(v));ctx.fillText(String(v),x+4,y+3)});
   // Closed Catmull-Rom spline through the six scores; CURVE softens the corners (1/6 = fully rounded, 0 = straight).
   const CURVE=1/24,shape=pts=>{
     ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
