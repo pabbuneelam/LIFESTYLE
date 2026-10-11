@@ -843,6 +843,17 @@ window.LIFESTYLE={
 if((state.diffVersion||1)<5){const doneToday=new Set(doneOn(today()));active().forEach(g=>{const xp=xpForDiff(estimateDifficulty(g.name));if(doneToday.has(g.id))state.xp=Math.max(0,state.xp+xp-g.xp);g.xp=xp});state.diffVersion=5}
 
 updateTimer();render();readStepHash();checkStepReturn();
+// A tab left open compares its release stamp (tools/stamp-version.sh) with the live one every 10 minutes and on
+// return, and reloads into a newer release — but never while someone is typing.
+const RELEASE=(document.querySelector('script[src^="app.js"]')?.getAttribute("src").match(/v=(\d+)/)||[])[1];
+let releaseReloadPending=false;
+const reloadForRelease=()=>{if(document.activeElement?.matches("input,textarea")){releaseReloadPending=true;return}location.reload()};
+async function checkRelease(){
+  if(!RELEASE||document.hidden)return;
+  if(releaseReloadPending)return reloadForRelease();
+  try{const html=await(await fetch("./?release="+Date.now(),{cache:"no-store"})).text();const live=(html.match(/app\.js\?v=(\d+)/)||[])[1];if(live&&live!==RELEASE)reloadForRelease()}catch(e){}
+}
+setInterval(checkRelease,10*60*1000);document.addEventListener("visibilitychange",checkRelease);
 // Check for a new version on every launch and resume; reload once it takes over, but never while someone is typing.
 if("serviceWorker"in navigator){
   const hadController=!!navigator.serviceWorker.controller;let pendingReload=false,reloaded=false;
