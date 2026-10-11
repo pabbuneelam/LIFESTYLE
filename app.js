@@ -566,6 +566,16 @@ function estimateDifficulty(text){
   const bump=x=>{lvl=Math.max(lvl,x)};
   const lim=t.match(/(?:less than|under|max(?:imum)?|at most|no more than)\s+(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?)\b/);
   if(lim){const h=/^h/.test(lim[2])?n(lim[1]):n(lim[1])/60;bump(h<=1?3:h<=2?2:1);rest=t.replace(lim[0]," ")}
+  // Exercise counts use per-exercise thresholds; "in an hour" / "in 10 minutes" is a time limit (harder for a
+  // real count), not how long the goal takes.
+  const EXERCISES=[[/pull[- ]?ups?|chin[- ]?ups?/,10,30],[/push[- ]?ups?|press[- ]?ups?/,40,100],[/burpees?/,20,50],[/dips\b/,20,50],[/squats?|lunges?/,50,150],[/sit[- ]?ups?|crunches/,50,150],[/reps\b/,40,100]];
+  let ex=0;
+  for(const[re,med,hard]of EXERCISES){const m=t.match(new RegExp("(\\d+)\\s*(?:"+re.source+")"));if(m){const v=n(m[1]);ex=Math.max(ex,v>=hard?3:v>=med?2:1)}}
+  if(ex){
+    const within=/\bin (?:under |less than )?(?:an?|one|half an|\d+(?:\.\d+)?) ?(?:hours?|hrs?|minutes?|mins?)\b/;
+    if(within.test(rest)){rest=rest.replace(within," ");if(ex>=2)ex=3}
+    bump(ex);
+  }
   let mins=0;
   for(const m of rest.matchAll(/(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|h)\b/g))mins+=n(m[1])*60;
   for(const m of rest.matchAll(/(\d+(?:\.\d+)?)\s*(?:minutes?|mins?)\b/g))mins+=n(m[1]);
@@ -574,7 +584,6 @@ function estimateDifficulty(text){
   if(mins&&!/\bsleep\b/.test(rest))bump(mins>=90?3:mins>=30?2:1);
   const amt=(re,med,hard,scale=1)=>{const m=rest.match(re);if(m){const v=n(m[1])*(m[2]?scale:1);bump(v>=hard?3:v>=med?2:1)}};
   amt(/(\d+)\s*pages?/,15,40);
-  amt(/(\d+)\s*(?:push-?ups?|squats?|sit-?ups?|burpees?|pull-?ups?|lunges?|reps?|crunches)/,40,100);
   amt(/(\d+(?:\.\d+)?)\s*(k)?\s*steps/,8000,15000,1000);
   amt(/(\d+(?:\.\d+)?)\s*(?:km|kilomet)/,2,5);
   amt(/(\d+(?:\.\d+)?)\s*(miles?)/,2,5,1.6);
@@ -811,7 +820,7 @@ window.LIFESTYLE={
 
 // One-time: re-rate existing goals with the updated difficulty rules. Past days' XP is untouched; for goals already
 // ticked today, today's XP moves by the difference so unticking them stays balanced.
-if((state.diffVersion||1)<3){const doneToday=new Set(doneOn(today()));active().forEach(g=>{const xp=xpForDiff(estimateDifficulty(g.name));if(doneToday.has(g.id))state.xp=Math.max(0,state.xp+xp-g.xp);g.xp=xp});state.diffVersion=3}
+if((state.diffVersion||1)<4){const doneToday=new Set(doneOn(today()));active().forEach(g=>{const xp=xpForDiff(estimateDifficulty(g.name));if(doneToday.has(g.id))state.xp=Math.max(0,state.xp+xp-g.xp);g.xp=xp});state.diffVersion=4}
 
 updateTimer();render();readStepHash();checkStepReturn();
 // Check for a new version on every launch and resume; reload once it takes over, but never while someone is typing.
