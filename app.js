@@ -121,18 +121,21 @@ function createdDay(g){
   const ms=parseInt(String(g.id).slice(0,-5),36);
   return ms>1e12&&ms<4e12?ds(new Date(ms)):"0000-00-00";
 }
-// Category score: 80 points for how many of that area's goals were done when they were due over the last 14 days
-// (daily and one-off goals; today only counts what's already done), plus up to 20 for lifetime volume.
+// Area score (0–100) has to be earned over time: up to 80 for consistency over the last 30 days (goals done vs.
+// goals due, scaled by how many of those days the area was in play), plus up to 20 that grows slowly with total
+// completions. One perfect day is worth ~1/30 of the consistency points; a month of them earns it all.
 function statScore(c){
   const life=catLifetime(c),t=today();
   const first=[...Object.keys(state.log),state.firstDay||t].sort()[0];
-  let done=0,due=0;
-  for(let k=first>addDays(t,-13)?first:addDays(t,-13);k<=t;k=addDays(k,1)){
+  let done=0,due=0,days=0;
+  for(let k=first>addDays(t,-29)?first:addDays(t,-29);k<=t;k=addDays(k,1)){
     const sched=goalsOn(k).filter(g=>g.category===c&&createdDay(g)<=k).length,d=catDoneOn(c,k);
-    done+=d;due+=k===t?d:Math.max(sched,d);
+    const owed=k===t?d:Math.max(sched,d); // today's unfinished goals don't count against you yet
+    done+=d;due+=owed;if(owed)days++;
   }
   if(!due&&!life)return 0;
-  return Math.min(100,Math.round((due?done/due:0)*80+Math.min(20,life/3)));
+  const consistency=(due?done/due:0)*Math.min(1,days/30);
+  return Math.min(100,Math.round(consistency*80+20*(1-Math.exp(-life/60))));
 }
 // Overall rating averages only the areas you actually have goals in.
 const ovr=()=>{const used=CATS.filter(c=>active().some(g=>g.category===c)||catLifetime(c));return used.length?Math.round(used.reduce((n,c)=>n+statScore(c),0)/used.length):0};
