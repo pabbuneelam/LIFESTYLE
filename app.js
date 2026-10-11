@@ -106,7 +106,7 @@ let viewDay=null;
 const viewKey=()=>viewDay&&viewDay>today()?viewDay:today();
 const MAX_PLAN_DAYS=60;
 function catDoneOn(c,k){return doneOn(k).filter(id=>goalById(id)?.category===c).length+(state.daily[k]&&dailyFor(k).category===c?1:0)}
-function catLifetime(c){return[...new Set([...Object.keys(state.log),...Object.keys(state.daily)])].reduce((n,k)=>n+catDoneOn(c,k),0)}
+function catLifetime(c,until){return[...new Set([...Object.keys(state.log),...Object.keys(state.daily)])].filter(k=>!until||k<=until).reduce((n,k)=>n+catDoneOn(c,k),0)}
 function totalDone(){return Object.values(state.log).reduce((n,a)=>n+a.length,0)}
 function syncToday(){
   const k=today(),act=goalsOn(k);
@@ -124,8 +124,8 @@ function createdDay(g){
 // Area score (0–100) has to be earned over time: up to 80 for consistency over the last 30 days (goals done vs.
 // goals due, scaled by how many of those days the area was in play), plus up to 20 that grows slowly with total
 // completions. One perfect day is worth ~1/30 of the consistency points; a month of them earns it all.
-function statScore(c){
-  const life=catLifetime(c),t=today();
+function statScore(c,asOf=today()){
+  const life=catLifetime(c,asOf),t=asOf;
   const first=[...Object.keys(state.log),state.firstDay||t].sort()[0];
   let done=0,due=0,days=0;
   for(let k=first>addDays(t,-29)?first:addDays(t,-29);k<=t;k=addDays(k,1)){
@@ -372,11 +372,15 @@ function tickCountdowns(){
 }
 
 function renderProgress(){
-  const li=levelInfo(),r=rankAt(li.level),scores=CATS.map(statScore);
-  drawRadar(scores);$("ovrBig").textContent=ovr();
-  // Tiles in pairs, same order as the reference layout.
+  const li=levelInfo(),r=rankAt(li.level),weekAgo=addDays(today(),-7);
+  const now=Object.fromEntries(CATS.map(c=>[c,statScore(c)])),before=Object.fromEntries(CATS.map(c=>[c,statScore(c,weekAgo)]));
+  drawRadar(CATS.map(c=>now[c]),CATS.map(c=>before[c]));$("ovrBig").textContent=ovr();
+  // Tiles in pairs, same order as the reference layout, each with its change over the last 7 days.
   const order=["social","physical","intellect","discipline","mental","ambition"];
-  $("categoryStats").innerHTML=order.map(c=>`<div class="cat-tile" style="--c:${CATEGORIES[c].color}">${hex(CATEGORIES[c].color,"xl")}<div><strong>${statScore(c)}</strong><small>${CATEGORIES[c].name}</small></div></div>`).join("");
+  $("categoryStats").innerHTML=order.map(c=>{
+    const d=now[c]-before[c],delta=d?`<em class="delta ${d>0?"up":"down"}">${d>0?"▲":"▼"} ${Math.abs(d)} this week</em>`:"";
+    return`<div class="cat-tile" style="--c:${CATEGORIES[c].color}">${hex(CATEGORIES[c].color,"xl")}<div><strong>${now[c]}</strong><small>${CATEGORIES[c].name}</small>${delta}</div></div>`;
+  }).join("");
   $("progressLevel").textContent="LVL "+li.level;
   const next=rankByIndex(r.idx+1),left=r.idx===RANK_COUNT-1?0:next.start-li.level;
   $("ladderHead").innerHTML=r.idx===RANK_COUNT-1?"You reached <b>Legend</b>":`<b>${left} more level${left===1?"":"s"}</b> until the next rank`;
@@ -396,9 +400,12 @@ function renderProgress(){
 }
 // The life radar is a smooth, rounded shape that grows out from the centre when Progress opens
 // and eases to new values when scores change.
-let radarShown=null,radarAnim=0;
-function drawRadar(values){
-  const target=values.map(v=>Math.max(.06,v/100)),from=radarShown||target.map(()=>.06);
+// Square-root scale so low scores still show and every point gained moves the shape (100 still reaches the edge).
+const radarRadius=v=>Math.max(.06,Math.sqrt(Math.max(0,v)/100));
+let radarShown=null,radarAnim=0,radarGhost=null;
+function drawRadar(values,lastWeek){
+  radarGhost=lastWeek&&lastWeek.some(v=>v>0)?lastWeek.map(radarRadius):null;
+  const target=values.map(radarRadius),from=radarShown||target.map(()=>.06);
   if(radarShown&&target.every((v,i)=>Math.abs(v-radarShown[i])<1e-3)){paintRadar(target);return}
   cancelAnimationFrame(radarAnim);
   const t0=performance.now(),dur=900;
@@ -413,16 +420,23 @@ function paintRadar(f){
   const canvas=$("radar"),ctx=canvas.getContext("2d"),dpr=window.devicePixelRatio||1,size=320;
   canvas.width=size*dpr;canvas.height=size*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,size,size);
   const cx=160,cy=160,r=100,n=6,pt=(i,k)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+Math.cos(a)*r*k,cy+Math.sin(a)*r*k]};
+  // Grid rings sit at scores 25 / 50 / 75 / 100 on the square-root scale, labelled up the top axis.
   ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,.12)";
-  [1,.66,.33].forEach(k=>{ctx.beginPath();for(let i=0;i<n;i++){const[x,y]=pt(i,k);i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.stroke()});
+  [100,75,50,25].forEach(v=>{const k=radarRadius(v);ctx.beginPath();for(let i=0;i<n;i++){const[x,y]=pt(i,k);i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.stroke()});
+  ctx.fillStyle="rgba(255,255,255,.28)";ctx.font="600 8px system-ui";ctx.textAlign="left";
+  [25,50,75].forEach(v=>{const[x,y]=pt(0,radarRadius(v));ctx.fillText(String(v),x+4,y+3)});
   // Closed Catmull-Rom spline through the six scores; CURVE softens the corners (1/6 = fully rounded, 0 = straight).
-  const P=f.map((k,i)=>pt(i,k)),CURVE=1/24;
-  ctx.beginPath();ctx.moveTo(P[0][0],P[0][1]);
-  for(let i=0;i<n;i++){
-    const p0=P[(i+n-1)%n],p1=P[i],p2=P[(i+1)%n],p3=P[(i+2)%n];
-    ctx.bezierCurveTo(p1[0]+(p2[0]-p0[0])*CURVE,p1[1]+(p2[1]-p0[1])*CURVE,p2[0]-(p3[0]-p1[0])*CURVE,p2[1]-(p3[1]-p1[1])*CURVE,p2[0],p2[1]);
-  }
-  ctx.closePath();
+  const CURVE=1/24,shape=pts=>{
+    ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=0;i<n;i++){
+      const p0=pts[(i+n-1)%n],p1=pts[i],p2=pts[(i+1)%n],p3=pts[(i+2)%n];
+      ctx.bezierCurveTo(p1[0]+(p2[0]-p0[0])*CURVE,p1[1]+(p2[1]-p0[1])*CURVE,p2[0]-(p3[0]-p1[0])*CURVE,p2[1]-(p3[1]-p1[1])*CURVE,p2[0],p2[1]);
+    }
+    ctx.closePath();
+  };
+  // Last week's shape as a faint dashed outline, so growth past it is visible.
+  if(radarGhost){shape(radarGhost.map((k,i)=>pt(i,k)));ctx.save();ctx.setLineDash([4,4]);ctx.lineWidth=1.5;ctx.strokeStyle="rgba(255,255,255,.38)";ctx.stroke();ctx.restore()}
+  const P=f.map((k,i)=>pt(i,k));shape(P);
   const fill=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
   fill.addColorStop(0,"rgba(255,255,255,.42)");fill.addColorStop(1,"rgba(170,170,185,.16)");
   ctx.fillStyle=fill;ctx.fill();
