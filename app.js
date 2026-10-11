@@ -282,33 +282,32 @@ function renderHomeChallenge(){
   $("homeChallenge").innerHTML=`<div class="section-head"><div><span class="label">DAILY CHALLENGE</span><h2>${esc(d.name)}</h2></div>${hex(c.color,"lg")}</div><p class="muted">${esc(d.task)}</p><button class="ghost wide" type="button">${done?"✓ Completed · +25 XP":"View challenge"}</button>`;
   $("homeChallenge").querySelector("button").addEventListener("click",()=>nav("program"));
 }
+// Each area lists its daily goals first, then upcoming one-off goals and daily goals that start later,
+// tagged so it's clear they don't repeat (or haven't started yet).
 function renderManager(){
-  const el=$("categoryManager");el.innerHTML="";
+  const el=$("categoryManager"),t=today();el.innerHTML="";
+  const dayLabel=d=>d===t?"Today":fmtDate(d,{weekday:"short",month:"short",day:"numeric"});
   CATS.forEach(c=>{
-    const gs=catGoals(c),box=document.createElement("div");box.className="manager-category";box.style.setProperty("--c",CATEGORIES[c].color);
-    box.innerHTML=`<div class="category-title"><span>${hex(CATEGORIES[c].color)} <strong>${CATEGORIES[c].name}</strong></span><span class="count ${gs.length?"valid":""}">${gs.length} goal${gs.length===1?"":"s"}</span></div><small>${CATEGORIES[c].desc}</small>`;
-    gs.forEach(g=>{
+    const daily=catGoals(c);
+    const later=active().filter(g=>g.category===c&&((g.date&&g.date>=t)||startsLater(g))).sort((a,b)=>(a.date||a.from).localeCompare(b.date||b.from));
+    const once=later.filter(g=>g.date).length,parts=[];
+    if(daily.length)parts.push(`${daily.length} daily`);if(once)parts.push(`${once} once`);if(later.length-once)parts.push(`${later.length-once} starting later`);
+    const box=document.createElement("div");box.className="manager-category";box.style.setProperty("--c",CATEGORIES[c].color);
+    box.innerHTML=`<div class="category-title"><span>${hex(CATEGORIES[c].color)} <strong>${CATEGORIES[c].name}</strong></span><span class="count ${parts.length?"valid":""}">${parts.join(" · ")||"0 goals"}</span></div><small>${CATEGORIES[c].desc}</small>`;
+    [...daily,...later].forEach(g=>{
       const row=document.createElement("div");row.className="manage-row";
-      row.innerHTML=`<div class="manage-goal"></div><span class="xp">+${g.xp} XP</span><button class="delete" type="button">Delete</button>`;
-      row.querySelector(".manage-goal").textContent=g.name;
+      row.innerHTML=`<div class="manage-goal"><span></span></div><span class="xp">+${g.xp} XP</span><button class="delete" type="button">Delete</button>`;
+      row.querySelector(".manage-goal span").textContent=g.name;
+      if(g.date||startsLater(g)){
+        const tag=document.createElement("small");tag.className="plan-date";
+        tag.textContent=g.date?`Once · ${dayLabel(g.date)}`:`Daily from ${dayLabel(g.from)}`;
+        row.querySelector(".manage-goal").prepend(tag);
+      }
       row.querySelector(".delete").addEventListener("click",()=>removeGoal(g.id));box.append(row);
     });
     const add=document.createElement("button");add.type="button";add.className="setup-add";add.textContent="＋ Add to "+CATEGORIES[c].name;
     add.addEventListener("click",()=>openGoal(c,true));box.append(add);el.append(box);
   });
-  const when=g=>g.date||g.from,planned=active().filter(g=>(g.date&&g.date>=today())||startsLater(g)).sort((a,b)=>when(a).localeCompare(when(b)));
-  if(!planned.length)return;
-  const box=document.createElement("div");box.className="manager-category";
-  box.innerHTML=`<div class="category-title"><span>🗓 <strong>Planned days</strong></span><span class="count valid">${planned.length} goal${planned.length===1?"":"s"}</span></div><small>Goals you planned ahead. One-off goals unlock on their day; new daily goals start repeating from their first day.</small>`;
-  planned.forEach(g=>{
-    const row=document.createElement("div");row.className="manage-row";
-    row.innerHTML=`<div class="manage-goal"><small class="plan-date"></small><span></span></div><span class="xp">+${g.xp} XP</span><button class="delete" type="button">Delete</button>`;
-    const d=when(g),day=d===today()?"Today":fmtDate(d,{weekday:"short",month:"short",day:"numeric"});
-    row.querySelector(".plan-date").textContent=g.date?day:"Daily from "+day;
-    row.querySelector(".manage-goal span").textContent=g.name;
-    row.querySelector(".delete").addEventListener("click",()=>removeGoal(g.id));box.append(row);
-  });
-  el.append(box);
 }
 
 function renderProgram(){
