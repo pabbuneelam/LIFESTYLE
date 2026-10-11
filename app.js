@@ -115,14 +115,27 @@ function syncToday(){
   state.history[k]={done,total:act.length,score:act.length?Math.round(done/act.length*100):0,completed:act.length>0&&done===act.length};
 }
 function streak(){let k=today();if(!state.history[k]?.completed)k=addDays(k,-1);let n=0;while(state.history[k]?.completed){n++;k=addDays(k,-1)}return n}
-function statScore(c){
-  const n=catGoals(c).length;if(!n&&!catLifetime(c))return 0;
-  const from=daysBetween(state.firstDay,today())>13?addDays(today(),-13):state.firstDay,span=daysBetween(from,today())+1;
-  let done=0;for(let i=0;i<span;i++)done+=catDoneOn(c,addDays(from,i));
-  const rate=n?Math.min(1,done/(span*n)):0;
-  return Math.min(100,Math.round(rate*80+Math.min(20,catLifetime(c)/3)));
+// When a goal was created, recovered from its id (uid() starts with Date.now() in base 36); unknown → always existed.
+function createdDay(g){
+  if(g.created)return g.created;
+  const ms=parseInt(String(g.id).slice(0,-5),36);
+  return ms>1e12&&ms<4e12?ds(new Date(ms)):"0000-00-00";
 }
-const ovr=()=>Math.round(CATS.reduce((n,c)=>n+statScore(c),0)/CATS.length);
+// Category score: 80 points for how many of that area's goals were done when they were due over the last 14 days
+// (daily and one-off goals; today only counts what's already done), plus up to 20 for lifetime volume.
+function statScore(c){
+  const life=catLifetime(c),t=today();
+  const first=[...Object.keys(state.log),state.firstDay||t].sort()[0];
+  let done=0,due=0;
+  for(let k=first>addDays(t,-13)?first:addDays(t,-13);k<=t;k=addDays(k,1)){
+    const sched=goalsOn(k).filter(g=>g.category===c&&createdDay(g)<=k).length,d=catDoneOn(c,k);
+    done+=d;due+=k===t?d:Math.max(sched,d);
+  }
+  if(!due&&!life)return 0;
+  return Math.min(100,Math.round((due?done/due:0)*80+Math.min(20,life/3)));
+}
+// Overall rating averages only the areas you actually have goals in.
+const ovr=()=>{const used=CATS.filter(c=>active().some(g=>g.category===c)||catLifetime(c));return used.length?Math.round(used.reduce((n,c)=>n+statScore(c),0)/used.length):0};
 const dailyFor=k=>DAILY[((daysBetween("2024-01-01",k)%DAILY.length)+DAILY.length)%DAILY.length];
 const weeklyFor=k=>WEEKLY[((Math.floor(daysBetween("2024-01-01",weekStart(k))/7)%WEEKLY.length)+WEEKLY.length)%WEEKLY.length];
 
