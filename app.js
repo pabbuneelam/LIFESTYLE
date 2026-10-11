@@ -541,10 +541,26 @@ function showUndo(msg,snapshot){
   $("undoBtn").onclick=()=>{clearTimeout(undoTimer);$("undoBar").classList.add("hidden");state={...fresh(),...JSON.parse(snapshot)};render();toast("Restored.")};
 }
 // Guess difficulty from the wording: time, amounts, early wake-ups, limits and tell-tale phrases. 1 easy, 2 medium, 3 hard.
+// Hard-effort activities by area (on top of HARD_RE's big outcomes and all-day abstinence).
+const AREA_HARD_RE=new RegExp([
+  // Physical
+  String.raw`\bhiit\b|crossfit|leg day|two[- ]a[- ]day|double session|half marathon|\b(5|10|21|42)k\b|long run|sprints?\b|hill repeats|\bhike\b|hiking|rock climb|bouldering|1 ?rep max|\bomad\b|ice bath|no carbs|calorie deficit|meal prep (for )?the (whole )?week|track (every|all) (meal|calorie)s?|bench \d+|squat \d+|full[- ]body workout|train for`,
+  // Social
+  String.raw`public speaking|give (a|my) (speech|talk|presentation)|present (to|in front of)|ask (someone|her|him|them|a girl|a guy) out|go on a (first )?date|approach (a )?(stranger|girl|guy|someone)|cold approach|host (a|my)? ?(party|dinner|event|game night)|organi[sz]e (a|an) (event|meetup|party|trip)|difficult conversation|hard conversation|confront|set (a )?boundar|make (a )?new friends?|lead (a|the) (meeting|team|group|club)|networking event|reconnect with`,
+  // Discipline
+  String.raw`phone[- ]free|no (phone|screens?|gaming|games|netflix|spending|eating out|takeout|fast food|snacks?|sweets|soda|energy drinks?)\b|dopamine detox|delete (instagram|tiktok|snapchat|social media|the app)|screen time under 1|deep work for|stick to (my|the|a) budget|zero spend|wake up at [3-5]\b|5 ?am|no snoo[zs]e for|clear (my|the) backlog|finish (all|every) (task|assignment)s?|(\d+|seven|thirty) days? (straight|in a row)`,
+  // Mental
+  String.raw`digital detox(?! hour)|silent retreat|face (a|my) fear|solo trip|therapy session|no negative self[- ]talk|forgive (someone|him|her|them|myself)|journal (\d+|three|five) pages|meditate for (an? )?hour`,
+  // Intellect
+  String.raw`finish (a|the|my) (book|course|module|textbook|chapter)|read (a|an|the) (whole|entire|full) book|complete (a|an|the|my) (course|module|certification|assignment|problem set)|learn (to code|python|javascript|a (new )?language|an instrument)|write (a|an|my) (essay|paper|report|lab report|research paper|thesis)|research paper|practice (test|exam)|(midterm|final) (exam|prep)|memori[sz]e|teach (a|the) (class|lesson)|leetcode|homework for (\d+|two|three)|study session for`,
+  // Ambition
+  String.raw`launch|business plan|side hustle|first (client|customer|sale)|make \$|earn \$|raise money|investors?|\bmvp\b|ship (my|the|a) (app|product|feature|project)|build (a|an|my) (app|website|startup|product|portfolio)|cold (email|call|dm)|record (a|my) (podcast|video)|post (a|my) (video|youtube)|grow (my|the) (channel|audience|following)|negotiate|ask for a raise|career fair|portfolio piece`
+].join("|"));
+// Words that make any goal more demanding bump it up one level.
+const INTENSE_RE=/\b(all day|entire|whole day|without (stopping|a break|breaks|excuses)|twice|double|non[- ]?stop|intense|extreme|max(imum)? effort|from scratch|no matter what)\b/;
 // Big outcomes and all-day abstinence are hard; quick, low-effort habits are easy.
 const HARD_RE=/\b(no (social media|sugar|junk|phone|youtube|tiktok|reels|shorts|complaining|caffeine|alcohol|porn|vaping|weed)\b|whole day|all day|entire day|cold (shower|plunge|water)|fasting|marathon|triathlon|ironman|inbox to zero|interview|apply|publish|pitch|scares|spend 0|finish one chapter|90 days|internship|(land|get|find|secure) (a |an |the |my )?(new )?(job|internship|offer|role|position|client|sponsor)|job offer|get hired|promot(ed|ion)|(ask|get) (for )?a raise|start (a|my) (business|company|side hustle)|launch|(pass|ace) (the |my |an? )?(exam|test|final|midterm|interview)|get into (college|university|grad school)|scholarship|certification|finish (the|my|a) (project|book|thesis|app|course|degree|portfolio)|write (a|my) (book|thesis|essay|paper)|quit (smoking|vaping|drinking|weed|porn|caffeine|sugar)|lose \d+ ?(lbs?|pounds?|kg|kilos?)|personal record|\bpr\b|deadlift|max out)/;
 const EASY_RE=/\b(text|call|message|voice note|thank|compliment|smile|make (my|the) bed|drink|water (the )?plants|stretch|grateful|gratitude|breath|breathing|note|hug|set out|name one|notice|listen to music|nap|say yes|wake up (early|on time|at my planned time)|get up early|on time|vitamins?|supplements?|floss|brush|skincare|eat breakfast|pray|prayer|pack my bag|plan tomorrow|plan (my|the) day|set (an |my )?alarm|go outside|get sunlight|take out the trash|tidy|walk the dog|feed|reply|check in)\b/;
-const MEDIUM_RE=/(work ?out|\brun\b|study|practi[sc]e|revis|research|build|cook|plan|meditat|journal|read|learn|write|clean|organi[sz]e|declutter|walk|swim|bike|yoga|volunteer|project|apologi|someone new|meetup|event|track|review|teach|save)/;
 function estimateDifficulty(text){
   const t=" "+text.toLowerCase().replace(/(\d),(\d)/g,"$1$2")+" ",n=parseFloat;let lvl=0,rest=t;
   const bump=x=>{lvl=Math.max(lvl,x)};
@@ -566,9 +582,18 @@ function estimateDifficulty(text){
   amt(/(\d+)\s*words/,300,1000);
   const wake=rest.match(/(?:wake|wake up|up|out of bed|rise)\D{0,15}?(?:at|before|by)\s*(\d{1,2})(?::(\d\d))?/);
   if(wake){const h=n(wake[1])+(wake[2]?n(wake[2])/60:0);bump(h<6?3:h<7.5?2:1)}
-  if(HARD_RE.test(t))bump(3);
-  if(lvl)return lvl;
-  return EASY_RE.test(t)?1:MEDIUM_RE.test(t)?2:2;
+  amt(/(\d+)\s*(?:new )?(?:people|strangers|friends|connections|recruiters)/,3,5);
+  amt(/(\d+)\s*(?:applications?|jobs?|internships?|companies|schools)/,2,4);
+  amt(/(\d+)\s*(?:practice |math |leetcode |coding )?(?:problems?|questions?|exercises?|flashcards?)/,10,30);
+  amt(/(\d+)\s*laps?/,10,30);
+  amt(/(\d+)\s*(?:cold )?(?:emails?|calls?|dms?|messages?|pitches?)/,5,15);
+  amt(/(\d+)\s*sets?\b/,4,8);
+  amt(/(\d+)\s*chapters?/,2,4);
+  amt(/\$\s?(\d+)/,50,500);
+  if(HARD_RE.test(t)||AREA_HARD_RE.test(t))bump(3);
+  let base=lvl||(EASY_RE.test(t)?1:2);
+  if(INTENSE_RE.test(t))base=Math.min(3,base+1);
+  return base;
 }
 const DIFF=["","Easy","Medium","Hard"],xpForDiff=d=>d*10;
 // Rate once the user stops typing (or leaves the field), so the label doesn't flicker on half-written goals.
@@ -786,7 +811,7 @@ window.LIFESTYLE={
 
 // One-time: re-rate existing goals with the updated difficulty rules. Past days' XP is untouched; for goals already
 // ticked today, today's XP moves by the difference so unticking them stays balanced.
-if((state.diffVersion||1)<2){const doneToday=new Set(doneOn(today()));active().forEach(g=>{const xp=xpForDiff(estimateDifficulty(g.name));if(doneToday.has(g.id))state.xp=Math.max(0,state.xp+xp-g.xp);g.xp=xp});state.diffVersion=2}
+if((state.diffVersion||1)<3){const doneToday=new Set(doneOn(today()));active().forEach(g=>{const xp=xpForDiff(estimateDifficulty(g.name));if(doneToday.has(g.id))state.xp=Math.max(0,state.xp+xp-g.xp);g.xp=xp});state.diffVersion=3}
 
 updateTimer();render();readStepHash();checkStepReturn();
 // Check for a new version on every launch and resume; reload once it takes over, but never while someone is typing.
