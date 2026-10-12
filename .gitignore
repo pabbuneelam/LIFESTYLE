@@ -1,1 +1,6 @@
 *-debug.log
+# Local-only: knowledge graph and Claude Code setup (never publish on the live site)
+graphify-out/
+.claude/
+CLAUDE.md
+.gitattributes
