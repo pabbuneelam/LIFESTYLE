@@ -73,4 +73,23 @@ t("removing a daily goal on tomorrow skips only tomorrow",()=>{
   const state={goals:[g]};new Function("state","today","goalById","render","showUndo","fmtDate",rm+"\n}return removeGoal")(state,a.today,()=>g,()=>{},(m,s)=>undo=s,()=>"Thursday")("d","2026-10-15");
   assert.deepStrictEqual(g.skip,["2026-10-15"]);assert.strictEqual(JSON.parse(undo).goals[0].skip,undefined); // undo snapshot predates the skip
 });
+// Tester additions: dependents found by graphify affected (prevDay/nextDay listeners, addGoal, repeatsOn).
+t("prevDay from tomorrow returns to today; nextDay from today reaches tomorrow",()=>{
+  const a=load("2026-10-14");
+  a.setViewDay(a.addDays(a.viewKey(),1));assert.strictEqual(a.viewKey(),"2026-10-15"); // nextDay listener
+  a.setViewDay(a.addDays(a.viewKey(),-1));assert.strictEqual(a.viewKey(),"2026-10-14");assert.strictEqual(a.viewDay,null); // prevDay listener
+});
+t("addGoal after an out-of-window setViewDay dates the goal tomorrow",()=>{
+  const a=load("2026-10-14"),body=cut("function addGoal","\n// Show a few ideas");
+  a.setViewDay("2026-10-30");
+  const state={goals:[]},inp={goalInput:{value:"Read"},goalCategory:{value:"mind"},goalRepeat:{checked:false}};
+  const add=new Function("$","state","viewKey","today","uid","xpForDiff","estimateDifficulty","closeGoal","render","toast","fmtDate","CATEGORIES",body+"\nreturn addGoal")(id=>inp[id],state,a.viewKey,a.today,()=>"u",()=>1,()=>1,()=>{},()=>{},()=>{},()=>"Thursday",{mind:{name:"Mind"}});
+  add();assert.strictEqual(state.goals[0].date,"2026-10-15");
+  inp.goalRepeat.checked=true;add();assert.strictEqual(state.goals[1].from,"2026-10-15");
+});
+t("legacy far-future goals stay hidden today/tomorrow and appear on their day",()=>{
+  const repeatsOn=new Function(cut("const repeatsOn=","\n")+"return repeatsOn")();
+  const g={id:"f",from:"2026-10-19"};
+  assert.strictEqual(repeatsOn(g,"2026-10-14"),false);assert.strictEqual(repeatsOn(g,"2026-10-15"),false);assert.strictEqual(repeatsOn(g,"2026-10-19"),true);
+});
 console.log(`\n${n} passed`);
