@@ -104,7 +104,7 @@ const catGoals=c=>dailyGoals().filter(g=>g.category===c);
 // Home can show a future day for planning; checking off stays locked until that day.
 let viewDay=null;
 const viewKey=()=>viewDay&&viewDay>today()?viewDay:today();
-const MAX_PLAN_DAYS=60;
+const MAX_PLAN_DAYS=1; // planning window: days beyond today the user can view/plan
 function catDoneOn(c,k){return doneOn(k).filter(id=>goalById(id)?.category===c).length+(state.daily[k]&&dailyFor(k).category===c?1:0)}
 function catLifetime(c,until){return[...new Set([...Object.keys(state.log),...Object.keys(state.daily)])].filter(k=>!until||k<=until).reduce((n,k)=>n+catDoneOn(c,k),0)}
 function totalDone(){return Object.values(state.log).reduce((n,a)=>n+a.length,0)}
@@ -191,13 +191,13 @@ function renderWeek(){
   const start=weekStart(),t=today();
   $("weekStrip").innerHTML=Array.from({length:7},(_,i)=>{
     const k=addDays(start,i),h=state.history[k],cls=k===t?"today":k>t?"future":h?.completed?"done":h?.score>0?"partial":"";
-    const sel=k===viewKey()?" selected":"",planned=k>t&&active().some(g=>g.date===k||g.from===k)?" planned":"";
-    const tag=k>=t?"button":"div";
-    return `<${tag} class="wk ${cls}${sel}${planned}"${k>=t?` type="button" data-day="${k}" aria-label="${fmtDate(k,{weekday:"long",month:"short",day:"numeric"})}"`:""}><span>${parse(k).toLocaleDateString(undefined,{weekday:"narrow"})}</span><i>${h?.completed?"✓":""}</i></${tag}>`;
+    const inWindow=k>=t&&k<=addDays(t,MAX_PLAN_DAYS),sel=k===viewKey()?" selected":"",planned=inWindow&&k>t&&active().some(g=>g.date===k||g.from===k)?" planned":"";
+    const tag=inWindow?"button":"div";
+    return `<${tag} class="wk ${cls}${sel}${planned}"${inWindow?` type="button" data-day="${k}" aria-label="${fmtDate(k,{weekday:"long",month:"short",day:"numeric"})}"`:""}><span>${parse(k).toLocaleDateString(undefined,{weekday:"narrow"})}</span><i>${h?.completed?"✓":""}</i></${tag}>`;
   }).join("");
   $("weekStrip").querySelectorAll("[data-day]").forEach(b=>b.addEventListener("click",()=>setViewDay(b.dataset.day)));
 }
-function setViewDay(k){viewDay=k>today()?k:null;renderWeek();renderGoals()}
+function setViewDay(k){const max=addDays(today(),MAX_PLAN_DAYS);viewDay=k>today()?(k>max?max:k):null;renderWeek();renderGoals()}
 function renderGoals(){
   const el=$("habitList"),k=viewKey(),t=today(),future=k>t,dayName=fmtDate(k,{weekday:"long"});
   $("todayLabel").textContent=fmtDate(k,{weekday:"short",month:"short",day:"numeric"}).toUpperCase()+(future?"":" · TODAY");
