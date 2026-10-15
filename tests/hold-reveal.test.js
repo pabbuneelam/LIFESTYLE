@@ -72,10 +72,34 @@ t("hold then immediate release does not toggle or delete",()=>{
 // Prove-It: the click-swallow flag expires 300ms after the hold fires, so a finger kept down a little longer
 // (release ~0.8s after touching) gets its click through and the goal toggles. iOS Safari dispatches that click
 // to the pressed element (touch pointers are implicitly captured), so a normal long-press checks the goal off.
-t("BUG: hold kept down past ~750ms then release still must not toggle",()=>{
+t("long hold (800ms) then release does not toggle (was a bug, fixed in b9444a4)",()=>{
   const a=home({goals:G});a.press(0,800);a.card(0).dispatch("click");
   assert.strictEqual(a.calls.open.length,1);
   assert.deepStrictEqual(a.calls.toggle,[],"goal was toggled by the click after a long hold");
+});
+t("very long hold (3s), release, click shortly after: no toggle; the next tap toggles",()=>{
+  const a=home({goals:G});a.press(0,3000);a.c.tick(20);a.card(0).dispatch("click");assert.deepStrictEqual(a.calls.toggle,[]);
+  a.c.tick(500);a.press(0,100);a.card(0).dispatch("click");assert.deepStrictEqual(a.calls.toggle,["g1"]);
+});
+t("click arriving up to 299ms after release is still swallowed (delayed-click window)",()=>{
+  const a=home({goals:G});a.press(0,1000);a.c.tick(299);a.card(0).dispatch("click");assert.deepStrictEqual(a.calls.toggle,[]);
+});
+t("hold fired then pointercancel (browser took the touch), late click: no toggle; flag cleared after",()=>{
+  const a=home({goals:G});a.card(0).dispatch("pointerdown");a.c.tick(600);a.card(0).dispatch("pointercancel");a.c.tick(100);
+  a.card(0).dispatch("click");assert.deepStrictEqual(a.calls.toggle,[]);assert.strictEqual(a.calls.open.length,1);
+});
+t("hold fired, pointerup never reaches the card (mouse released over modal): next tap still toggles",()=>{
+  const a=home({goals:G});a.card(0).dispatch("pointerdown");a.c.tick(600);a.card(0).dispatch("pointerleave");a.c.tick(5000);
+  assert.strictEqual(a.rows[0].dataset.swiped,"1"); // stale until the next press
+  a.press(0,100);a.card(0).dispatch("click");assert.deepStrictEqual(a.calls.toggle,["g1"]);
+});
+t("pointerleave after the hold fires does not start the expiry (mouse: modal appears under a held button)",()=>{
+  const a=home({goals:G});a.card(0).dispatch("pointerdown");a.c.tick(500);a.card(0).dispatch("pointerleave");a.c.tick(1000);
+  a.card(0).dispatch("pointerup");a.c.tick(10);a.card(0).dispatch("click");assert.deepStrictEqual(a.calls.toggle,[]);
+});
+t("two holds in a row each open edit once and never toggle",()=>{
+  const a=home({goals:G});for(const _ of[1,2]){a.press(0,900);a.c.tick(5);a.card(0).dispatch("click");a.c.tick(400)}
+  assert.strictEqual(a.calls.open.length,2);assert.deepStrictEqual(a.calls.toggle,[]);
 });
 t("hold on a future-day (locked) row opens edit and shows no Locked toast",()=>{
   const a=home({goals:G,view:"2026-10-16"});a.press(0,500);a.card(0).dispatch("click");
