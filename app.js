@@ -717,8 +717,14 @@ function showIdeas(fresh=false){
   el.querySelectorAll("[data-idea]").forEach(b=>b.addEventListener("click",()=>{$("goalInput").value=b.dataset.idea;autoDifficulty();el.classList.add("hidden")}));
 }
 function toast(s,ms=2200){const e=$("toast");e.textContent=s;clearTimeout(toast.t);toast.t=setTimeout(()=>e.textContent="",ms)}
+// Switching sections plays a short fade/rise on the incoming page; never on first load (navReady is set after startup).
+let navReady=false;
 function nav(page){
-  document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===page));
+  const prev=document.querySelector(".page.active");
+  document.querySelectorAll(".page").forEach(x=>{x.classList.toggle("active",x.id===page);if(x.id!==page)x.classList.remove("entering")});
+  const el=$(page);
+  // Restart cleanly on rapid taps: drop the class, force a reflow, add it back.
+  if(navReady&&el&&el!==prev){el.classList.remove("entering");void el.offsetWidth;el.classList.add("entering")}
   document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
   $("menuLabel").textContent=PAGE_NAMES[page]||"Menu";setMenu(false);
   if(page==="program")renderProgram(),renderChallenges();
@@ -926,7 +932,7 @@ function initReveal(){
   if(matchMedia("(prefers-reduced-motion: reduce)").matches||!("IntersectionObserver"in window))return;
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("rv-in");io.unobserve(e.target)}}),{threshold:.12,rootMargin:"0px 0px -6% 0px"});
   document.querySelectorAll(".page").forEach(page=>{
-    [page.querySelectorAll(":scope > .panel"),page.querySelectorAll(".stats > *")].forEach(set=>set.forEach((el,i)=>{
+    [page.querySelectorAll(":scope > .panel"),page.querySelectorAll(".stats > *"),...[...page.querySelectorAll(":scope > .lab-tab")].map(t=>t.querySelectorAll(":scope > .panel"))].forEach(set=>set.forEach((el,i)=>{
       el.style.setProperty("--rv-d",Math.min(i,4)*40+"ms");el.classList.add("rv");io.observe(el);
       // Drop the stagger once shown so later hover transitions aren't delayed.
       el.addEventListener("transitionend",()=>el.style.removeProperty("--rv-d"),{once:true});
@@ -935,7 +941,8 @@ function initReveal(){
   // Safety net: never leave content on the visible page hidden if an observer callback is missed.
   setTimeout(()=>document.querySelectorAll(".page.active .rv:not(.rv-in)").forEach(el=>{el.classList.add("rv-in");io.unobserve(el)}),1500);
 }
-updateTimer();render();readStepHash();checkStepReturn();initReveal();
+updateTimer();render();readStepHash();checkStepReturn();initReveal();navReady=true;
+document.querySelectorAll(".page").forEach(p=>p.addEventListener("animationend",e=>{if(e.target===p)p.classList.remove("entering")}));
 // A tab left open compares its release stamp (tools/stamp-version.sh) with the live one every 10 minutes and on
 // return, and reloads into a newer release — but never while someone is typing.
 const RELEASE=(document.querySelector('script[src^="app.js"]')?.getAttribute("src").match(/v=(\d+)/)||[])[1];
