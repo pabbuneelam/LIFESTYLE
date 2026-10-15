@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="LIFESTYLE">
 <link rel="manifest" href="manifest.json">
 <title>LIFESTYLE — Discipline System</title>
-<link rel="stylesheet" href="style.css?v=20261014125945">
+<link rel="stylesheet" href="style.css?v=20261015171841">
 </head>
 <body>
 <main class="app">
@@ -229,7 +229,7 @@
 
 <div id="goalModal" class="modal hidden">
   <div class="modal-card">
-    <div class="modal-head"><div><span class="label">NEW GOAL</span><h2>Add a goal</h2></div><button id="closeGoal" class="ghost" type="button">Close</button></div>
+    <div class="modal-head"><div><span id="goalLabel" class="label">NEW GOAL</span><h2 id="goalTitle">Add a goal</h2></div><button id="closeGoal" class="ghost" type="button">Close</button></div>
     <div class="field"><span>Area</span><select id="goalCategory" aria-label="Area"></select></div>
     <label class="field"><span>Your goal</span><input id="goalInput" maxlength="80" placeholder="e.g. Read for 20 minutes" autocomplete="off"></label>
     <div class="field"><span>Difficulty</span><div id="goalDiff" class="diff-display"></div></div>
@@ -255,7 +255,7 @@
 <div id="undoBar" class="undo-bar hidden" role="status"><span id="undoText"></span><button id="undoBtn" type="button">Undo</button></div>
 <div id="toast" class="toast fixed-toast" aria-live="polite"></div>
 </main>
-<script src="app.js?v=20261014125945"></script>
-<script type="module" src="cloud.js?v=20261014125945"></script>
+<script src="app.js?v=20261015171841"></script>
+<script type="module" src="cloud.js?v=20261015171841"></script>
 </body>
 </html>

@@ -220,10 +220,10 @@ function renderGoals(){
       if(row.dataset.swiped){delete row.dataset.swiped;return}
       future?toast(`Locked until ${dayName}. You can check this off then.`):toggle(g.id);
     });
-    row.append(r);attachSwipe(row,()=>removeGoal(g.id,k));
+    row.append(r);attachSwipe(row,()=>removeGoal(g.id,k));attachHold(row,()=>openGoal(g.category,!g.date,g));
     el.append(row);
   }));
-  if(!state.swipeTipSeen)el.insertAdjacentHTML("beforeend",'<p class="swipe-hint">Tip: swipe a goal left to delete it.</p>');
+  if(!state.swipeTipSeen)el.insertAdjacentHTML("beforeend",'<p class="swipe-hint">Tip: swipe a goal left to delete it, or hold to edit.</p>');
 }
 // Swipe a goal away to delete it, like clearing a notification: drag it far enough (or flick it) and it flies off.
 const SNAP_BACK="transform .42s cubic-bezier(.34,1.56,.64,1),opacity .3s ease";
@@ -275,6 +275,28 @@ function attachSwipe(row,onDelete){
     cue.style.opacity="0";armed=false;row.classList.remove("armed");
   };
   card.addEventListener("pointerup",end);card.addEventListener("pointercancel",end);
+}
+// Press and hold a goal to edit it. Any drag past the swipe threshold cancels, so scrolling and swiping still win.
+const HOLD_MS=450,HOLD_SLOP=8;
+function attachHold(row,onHold){
+  const card=row.querySelector(".task");let timer=0,x0=0,y0=0,pid=null;
+  const cancel=()=>{clearTimeout(timer);timer=0;card.classList.remove("holding")};
+  card.addEventListener("pointerdown",e=>{
+    if(e.button||row.classList.contains("removing"))return;
+    cancel();x0=e.clientX;y0=e.clientY;pid=e.pointerId;card.classList.add("holding");
+    timer=setTimeout(()=>{
+      timer=0;card.classList.remove("holding");
+      row.dataset.swiped="1";setTimeout(()=>delete row.dataset.swiped,300); // swallow the click that follows release
+      navigator.vibrate?.(10);onHold();
+    },HOLD_MS);
+  });
+  card.addEventListener("pointermove",e=>{
+    if(timer&&e.pointerId===pid&&(Math.abs(e.clientX-x0)>HOLD_SLOP||Math.abs(e.clientY-y0)>HOLD_SLOP||row.classList.contains("swiping")))cancel();
+  });
+  ["pointerup","pointercancel","pointerleave"].forEach(t=>card.addEventListener(t,cancel));
+  card.addEventListener("contextmenu",e=>e.preventDefault());
+  // Keyboard path: E or Shift+Enter edits; plain Enter/Space still toggles.
+  card.addEventListener("keydown",e=>{if(e.key==="e"||e.key==="E"||(e.key==="Enter"&&e.shiftKey)){e.preventDefault();onHold()}});
 }
 function renderHomeChallenge(){
   const d=dailyFor(today()),done=!!state.daily[today()],c=CATEGORIES[d.category];
@@ -640,20 +662,33 @@ function autoDifficulty(){
   $("goalDiff").className="diff-display"+(d?" d"+d:"");
   $("goalDiff").textContent=d?`${DIFF[d]} · +${xpForDiff(d)} XP`:"Set automatically from your goal";
 }
-function openGoal(category,repeat){
+let editingId=null;
+function openGoal(category,repeat,goal){
   const k=viewKey(),future=k>today();
+  editingId=goal?goal.id:null;
+  $("goalLabel").textContent=goal?"EDIT GOAL":"NEW GOAL";$("goalTitle").textContent=goal?"Edit goal":"Add a goal";$("saveGoal").textContent=goal?"Save changes":"Add goal";
   $("goalRepeat").checked=repeat??!future;
   repeatHint();
   $("goalModal").classList.remove("hidden");
   $("goalCategory").innerHTML=CATS.map(c=>`<option value="${c}">${CATEGORIES[c].icon} ${CATEGORIES[c].name}</option>`).join("");
   if(category)$("goalCategory").value=category;
   syncGoalArea();
-  $("goalInput").value="";autoDifficulty();$("ideaList").classList.add("hidden");$("goalInput").focus();
+  $("goalInput").value=goal?goal.name:"";autoDifficulty();$("ideaList").classList.add("hidden");$("goalInput").focus();
 }
 function repeatHint(){const k=viewKey(),day=fmtDate(k,{weekday:"long",month:"short",day:"numeric"});$("repeatHint").textContent=$("goalRepeat").checked?(k===today()?"Shows up every day":"Every day starting "+day):`Only on ${k===today()?"today":day}`}
-function closeGoal(){$("goalModal").classList.add("hidden")}
+function closeGoal(){$("goalModal").classList.add("hidden");editingId=null}
 function addGoal(){
   const name=$("goalInput").value.trim(),category=$("goalCategory").value;
+  if(editingId){
+    const g=active().find(x=>x.id===editingId);
+    if(!g){closeGoal();toast("That goal no longer exists.");return}
+    if(!name){toast("Enter a goal first.");return}
+    const xp=xpForDiff(estimateDifficulty(name));
+    if(isDone(g.id))state.xp=Math.max(0,state.xp+xp-g.xp); // keep total XP consistent if it's already checked off today
+    g.name=name;g.category=category;g.xp=xp;
+    if($("goalRepeat").checked)delete g.date;else{g.date=g.date||g.from||viewKey();delete g.from}
+    closeGoal();render();toast("Goal updated.");return;
+  }
   if(!name){toast("Enter a goal first.");return}
   const repeat=$("goalRepeat").checked,k=viewKey(),g={id:uid(),name,category,xp:xpForDiff(estimateDifficulty(name))};
   if(!repeat)g.date=k;else if(k>today())g.from=k;
@@ -886,7 +921,21 @@ window.LIFESTYLE={
 // ticked today, today's XP moves by the difference so unticking them stays balanced.
 if((state.diffVersion||1)<5){const doneToday=new Set(doneOn(today()));active().forEach(g=>{const xp=xpForDiff(estimateDifficulty(g.name));if(doneToday.has(g.id))state.xp=Math.max(0,state.xp+xp-g.xp);g.xp=xp});state.diffVersion=5}
 
-updateTimer();render();readStepHash();checkStepReturn();
+// Apple-style scroll reveal: panels fade and rise once as they enter the viewport. Reduced motion skips it entirely.
+function initReveal(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches||!("IntersectionObserver"in window))return;
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("rv-in");io.unobserve(e.target)}}),{threshold:.12,rootMargin:"0px 0px -6% 0px"});
+  document.querySelectorAll(".page").forEach(page=>{
+    [page.querySelectorAll(":scope > .panel"),page.querySelectorAll(".stats > *")].forEach(set=>set.forEach((el,i)=>{
+      el.style.setProperty("--rv-d",Math.min(i,4)*40+"ms");el.classList.add("rv");io.observe(el);
+      // Drop the stagger once shown so later hover transitions aren't delayed.
+      el.addEventListener("transitionend",()=>el.style.removeProperty("--rv-d"),{once:true});
+    }));
+  });
+  // Safety net: never leave content on the visible page hidden if an observer callback is missed.
+  setTimeout(()=>document.querySelectorAll(".page.active .rv:not(.rv-in)").forEach(el=>{el.classList.add("rv-in");io.unobserve(el)}),1500);
+}
+updateTimer();render();readStepHash();checkStepReturn();initReveal();
 // A tab left open compares its release stamp (tools/stamp-version.sh) with the live one every 10 minutes and on
 // return, and reloads into a newer release — but never while someone is typing.
 const RELEASE=(document.querySelector('script[src^="app.js"]')?.getAttribute("src").match(/v=(\d+)/)||[])[1];

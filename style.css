@@ -198,3 +198,8 @@ button.wk{background:none;border:0;padding:0;font:inherit;cursor:pointer;-webkit
 .area-picker .hex,.area-options .hex{flex:0 0 auto}
 .field .area-picker span{display:inline;font-size:inherit;font-weight:inherit;letter-spacing:normal;margin:0;text-transform:none}
 .modal{z-index:40}
+.task.holding{transform:scale(.98);border-color:color-mix(in srgb,var(--c) 85%,transparent);transition:transform .45s linear,border-color .45s linear}
+.rv{opacity:0;transform:translateY(18px);animation:none;transition:opacity .6s var(--ease),transform .6s var(--ease),border-color .3s ease,box-shadow .3s ease;transition-delay:var(--rv-d,0ms)}
+.rv.rv-in{opacity:1;transform:none}
+.stat.rv-in:hover{transform:translateY(-3px)}
+@media(prefers-reduced-motion:reduce){.rv,.rv-in{opacity:1;transform:none;transition:none}.task.holding{transform:none;transition:none}}
