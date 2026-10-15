@@ -279,14 +279,15 @@ function attachSwipe(row,onDelete){
 // Press and hold a goal to edit it. Any drag past the swipe threshold cancels, so scrolling and swiping still win.
 const HOLD_MS=450,HOLD_SLOP=8;
 function attachHold(row,onHold){
-  const card=row.querySelector(".task");let timer=0,x0=0,y0=0,pid=null;
+  const card=row.querySelector(".task");let timer=0,x0=0,y0=0,pid=null,fired=false;
   const cancel=()=>{clearTimeout(timer);timer=0;card.classList.remove("holding")};
   card.addEventListener("pointerdown",e=>{
     if(e.button||row.classList.contains("removing"))return;
+    delete row.dataset.swiped; // a stale flag from a hold whose click never came must not eat this tap
     cancel();x0=e.clientX;y0=e.clientY;pid=e.pointerId;card.classList.add("holding");
     timer=setTimeout(()=>{
-      timer=0;card.classList.remove("holding");
-      row.dataset.swiped="1";setTimeout(()=>delete row.dataset.swiped,300); // swallow the click that follows release
+      timer=0;fired=true;card.classList.remove("holding");
+      row.dataset.swiped="1"; // swallow the release click however long the press lasts; renderGoals' click handler clears it
       navigator.vibrate?.(10);onHold();
     },HOLD_MS);
   });
@@ -294,6 +295,8 @@ function attachHold(row,onHold){
     if(timer&&e.pointerId===pid&&(Math.abs(e.clientX-x0)>HOLD_SLOP||Math.abs(e.clientY-y0)>HOLD_SLOP||row.classList.contains("swiping")))cancel();
   });
   ["pointerup","pointercancel","pointerleave"].forEach(t=>card.addEventListener(t,cancel));
+  // The release click arrives right after pointerup; if it never does (released over the modal), drop the flag shortly after release.
+  ["pointerup","pointercancel"].forEach(t=>card.addEventListener(t,()=>{if(fired){fired=false;setTimeout(()=>delete row.dataset.swiped,300)}}));
   card.addEventListener("contextmenu",e=>e.preventDefault());
   // Keyboard path: E or Shift+Enter edits; plain Enter/Space still toggles.
   card.addEventListener("keydown",e=>{if(e.key==="e"||e.key==="E"||(e.key==="Enter"&&e.shiftKey)){e.preventDefault();onHold()}});
