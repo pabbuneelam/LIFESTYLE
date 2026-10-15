@@ -23,14 +23,15 @@ t("ttl*/sd* keyframes declare only opacity/scale/translate/transform",()=>{
   for(const k of["ttlShrink","ttlFade","ttlLine","sdIn","sdOut","sdDrift"])assert(frames[k]!==undefined,"missing @keyframes "+k);
   for(const[k,b]of Object.entries(frames))for(const m of b.matchAll(/([a-z-]+)\s*:/g))assert(/^(opacity|scale|translate|transform)$/.test(m[1]),k+" animates "+m[1]);
 });
-t("values match the spec (title .65, panels .4/.94 in, .55/.97 out, drift +-14px)",()=>{
+t("values match the spec (title .65, panels .4/.94 in, .7/.98 out, drift +-6px)",()=>{
   assert(/scale:\.65/.test(frames.ttlShrink));assert(/opacity:0/.test(frames.ttlFade));
-  assert(/opacity:\.4;scale:\.94/.test(frames.sdIn));assert(/opacity:\.55;scale:\.97/.test(frames.sdOut));
-  assert(/translate:0 -14px/.test(frames.sdDrift)&&/translate:0 14px/.test(frames.sdDrift));
+  assert(/opacity:\.4;scale:\.94/.test(frames.sdIn));assert(/opacity:\.7;scale:\.98/.test(frames.sdOut));
+  assert(/translate:0 -6px/.test(frames.sdDrift)&&/translate:0 6px/.test(frames.sdDrift));
 });
 t("no forbidden selectors, no position:fixed / overflow / will-change / filter",()=>{
   for(const r of rules)assert(!/\.task|\.task-row|\.modal|\.menu-|\.nav|\.hero-/.test(r.sel),"bad selector "+r.sel);
-  assert(!/position:fixed|overflow|will-change|filter/.test(block));
+  assert(!/position:fixed|overflow|will-change/.test(block));
+  assert(!/filter:(?!none)/.test(block),"only backdrop-filter:none is allowed in the block");
 });
 t("the .topbar rule itself is never animated or transformed",()=>{
   for(const r of rules)if(r.sel.split(",").some(s=>s.trim()===".topbar"))assert(!/animation|transform|scale|translate/.test(r.decl),r.sel);
@@ -53,14 +54,19 @@ t("title uses the root scroll timeline over 0-64px (eyebrow 0-36px)",()=>{
 t("panels: three view() timelines with header inset and non-overlapping in/out ranges",()=>{
   const p=rules.find(r=>r.sel===".page>.panel,.stats>.stat,.lab-tab>.panel");assert(p);
   assert.strictEqual((p.decl.match(/view\(block 96px 0px\)/g)||[]).length,3);
-  assert(/animation-range:entry 0% entry 55%,exit 45% exit 100%,cover 0% cover 100%/.test(p.decl));
+  assert(/animation-range:entry 0% entry 55%,exit 60% exit 100%,cover 0% cover 100%/.test(p.decl));
+});
+t("scrubbed panels drop their backdrop blur (iOS Safari re-blurs every frame otherwise)",()=>{
+  const p=rules.find(r=>r.sel===".page>.panel,.stats>.stat,.lab-tab>.panel");
+  assert(/(^|;)backdrop-filter:none/.test(p.decl)&&/-webkit-backdrop-filter:none/.test(p.decl));
+  assert(/--panel:rgba\(17,17,22,\.9\d?\)/.test(p.decl),"background made more opaque to replace the blur");
 });
 t("initReveal skips .rv when CSS scroll-driven animations are supported (single early return)",()=>{
   const fn=app.slice(app.indexOf("function initReveal"),app.indexOf("updateTimer();render();"));
   assert(fn.includes('window.CSS&&window.CSS.supports&&window.CSS.supports("animation-timeline","view()")'));
   assert.strictEqual((fn.match(/\)return;/g)||[]).length,1);
 });
-t("sw cache is lifestyle-v5",()=>assert(sw.includes('const CACHE="lifestyle-v5"')));
+t("sw cache is lifestyle-v6",()=>assert(sw.includes('const CACHE="lifestyle-v6"')));
 t("index.html asset stamps match and moved past 20261015172805",()=>{
   const s=html.match(/style\.css\?v=(\d+)/)[1],a=html.match(/app\.js\?v=(\d+)/)[1];
   assert.strictEqual(s,a);assert.notStrictEqual(s,"20261015172805");
