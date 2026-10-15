@@ -932,7 +932,8 @@ if((state.diffVersion||1)<5){const doneToday=new Set(doneOn(today()));active().f
 
 // Apple-style scroll reveal: panels fade and rise once as they enter the viewport. Reduced motion skips it entirely.
 function initReveal(){
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches||!("IntersectionObserver"in window))return;
+  // CSS scroll-driven animations own the reveal where supported, so skip the one-shot .rv path there.
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches||!("IntersectionObserver"in window)||(window.CSS&&window.CSS.supports&&window.CSS.supports("animation-timeline","view()")))return;
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("rv-in");io.unobserve(e.target)}}),{threshold:.12,rootMargin:"0px 0px -6% 0px"});
   document.querySelectorAll(".page").forEach(page=>{
     [page.querySelectorAll(":scope > .panel"),page.querySelectorAll(".stats > *"),...[...page.querySelectorAll(":scope > .lab-tab")].map(t=>t.querySelectorAll(":scope > .panel"))].forEach(set=>set.forEach((el,i)=>{
