@@ -80,7 +80,7 @@ t("prevDay from tomorrow returns to today; nextDay from today reaches tomorrow",
   a.setViewDay(a.addDays(a.viewKey(),-1));assert.strictEqual(a.viewKey(),"2026-10-14");assert.strictEqual(a.viewDay,null); // prevDay listener
 });
 t("addGoal after an out-of-window setViewDay dates the goal tomorrow",()=>{
-  const a=load("2026-10-14"),body=cut("function addGoal","\n// Show a few ideas");
+  const a=load("2026-10-14"),body="let editingId=null;"+cut("function addGoal","\n// Show a few ideas"); // add flow (not editing)
   a.setViewDay("2026-10-30");
   const state={goals:[]},inp={goalInput:{value:"Read"},goalCategory:{value:"mind"},goalRepeat:{checked:false}};
   const add=new Function("$","state","viewKey","today","uid","xpForDiff","estimateDifficulty","closeGoal","render","toast","fmtDate","CATEGORIES",body+"\nreturn addGoal")(id=>inp[id],state,a.viewKey,a.today,()=>"u",()=>1,()=>1,()=>{},()=>{},()=>{},()=>"Thursday",{mind:{name:"Mind"}});
