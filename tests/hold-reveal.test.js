@@ -155,7 +155,7 @@ t("swiped flag is cleaned up after a hold (no stuck swallow for the next tap)",(
 
 // ---------- initReveal harness ----------
 const revealCode=cut("function initReveal","updateTimer();render();");
-function reveal({reduced=false,io=true}={}){
+function reveal({reduced=false,io=true,sdt}={}){
   const c=clock(),observed=new Set();let cb=null;
   const mkPage=(id,active,{panels=2,stats=0,lab=[]}={})=>{
     const p=el("section");p.id=id;p.className="page"+(active?" active":"");
@@ -170,13 +170,26 @@ function reveal({reduced=false,io=true}={}){
   const all=()=>pages.flatMap(p=>[...p.panels,...p.stats,...p.labs.flat()]);
   const document={querySelectorAll:s=>s===".page"?pages:s===".page.active .rv:not(.rv-in)"?pages.filter(p=>p.classList.contains("active")).flatMap(p=>[...p.panels,...p.stats,...p.labs.flat()]).filter(e=>e.classList.contains("rv")&&!e.classList.contains("rv-in")):[]};
   function IO(f,opts){cb=f;this.opts=opts;this.observe=e=>observed.add(e);this.unobserve=e=>observed.delete(e);IO.last=this}
-  const window=io?{IntersectionObserver:IO}:{};
-  const fn=new Function("document","window","IntersectionObserver","matchMedia","setTimeout",revealCode+";return initReveal")(document,window,IO,()=>({matches:reduced}),c.setTimeout);
+  const window=io?{IntersectionObserver:IO}:{};let timers=0;
+  if(sdt!==undefined)window.CSS={supports:(p,v)=>p==="animation-timeline"&&v==="view()"&&sdt};
+  const fn=new Function("document","window","IntersectionObserver","matchMedia","setTimeout",revealCode+";return initReveal")(document,window,IO,()=>({matches:reduced}),(f,ms)=>{timers++;return c.setTimeout(f,ms)});
   fn();
-  return{c,pages,all,observed,fire:(es)=>cb(es.map(([target,isIntersecting])=>({target,isIntersecting}))),IO};
+  return{c,pages,all,observed,timers:()=>timers,fire:(es)=>cb(es.map(([target,isIntersecting])=>({target,isIntersecting}))),IO};
 }
 t("reduced motion: no element gets .rv, nothing observed",()=>{const r=reveal({reduced:true});assert(r.all().every(e=>!e.classList.contains("rv")));assert.strictEqual(r.observed.size,0)});
 t("no IntersectionObserver: no element gets .rv (content stays visible)",()=>{const r=reveal({io:false});assert(r.all().every(e=>!e.classList.contains("rv")))});
+t("scroll-driven animations supported: no .rv, no observer, no timeout",()=>{
+  const r=reveal({sdt:true});assert(r.all().every(e=>!e.classList.contains("rv")));assert.strictEqual(r.observed.size,0);assert.strictEqual(r.IO.last,undefined);assert.strictEqual(r.timers(),0);
+});
+t("scroll-driven animations unsupported (CSS.supports false): .rv reveal unchanged",()=>{
+  const r=reveal({sdt:false});assert(r.all().every(e=>e.classList.contains("rv")&&r.observed.has(e)));assert.strictEqual(r.timers(),1);
+});
+t("no window.CSS (older browsers): .rv reveal unchanged",()=>{
+  const r=reveal();assert(r.all().every(e=>e.classList.contains("rv")));assert.strictEqual(r.timers(),1);
+});
+t("reduced motion + scroll-driven support: still nothing tagged or observed",()=>{
+  const r=reveal({reduced:true,sdt:true});assert(r.all().every(e=>!e.classList.contains("rv")));assert.strictEqual(r.observed.size,0);assert.strictEqual(r.timers(),0);
+});
 t("panels, stat cards and Lab tab panels get .rv and are observed; task rows are not",()=>{
   const r=reveal();assert(r.all().every(e=>e.classList.contains("rv")&&r.observed.has(e)));
   assert(r.pages.every(p=>!p.task.classList.contains("rv")));assert.strictEqual(r.observed.size,6+3+5);
@@ -210,8 +223,8 @@ t("reduced motion CSS disables reveal, hold scale and page swap",()=>{
 t("page swap only animates opacity/transform, no first-load pageIn on .page.active",()=>{
   assert(/\.page\.active\{display:block\}/.test(css));assert(/@keyframes pageSwap\{from\{opacity:0;transform:[^}]*\}to\{opacity:1;transform:none\}\}/.test(css));
 });
-t("sw cache bumped to lifestyle-v4 and activate deletes other caches",()=>{
-  assert(sw.includes('const CACHE="lifestyle-v4"'));assert(sw.includes("keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))"));
+t("sw cache bumped to lifestyle-v5 and activate deletes other caches",()=>{
+  assert(sw.includes('const CACHE="lifestyle-v5"'));assert(sw.includes("keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))"));
 });
 
 // ---------- startup wiring / nav call sites ----------
