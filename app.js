@@ -690,6 +690,8 @@ function addGoal(){
     if(isDone(g.id))state.xp=Math.max(0,state.xp+xp-g.xp); // keep total XP consistent if it's already checked off today
     g.name=name;g.category=category;g.xp=xp;
     if($("goalRepeat").checked)delete g.date;else{g.date=g.date||g.from||viewKey();delete g.from}
+    // Moved off today (one-off planned for another day): today's check and its XP no longer apply.
+    if(g.date&&g.date!==today()&&isDone(g.id)){state.log[today()]=doneOn(today()).filter(x=>x!==g.id);state.xp=Math.max(0,state.xp-g.xp);syncToday()}
     closeGoal();render();toast("Goal updated.");return;
   }
   if(!name){toast("Enter a goal first.");return}

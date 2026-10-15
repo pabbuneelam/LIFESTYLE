@@ -9,8 +9,8 @@ function load(goals,{done=[],xp=100,view="2026-10-15"}={}){
   const toasts=[],state={goals,xp,log:{"2026-10-15":done}};
   const env={$,state,toasts,
     today:()=>"2026-10-15",viewKey:()=>view,fmtDate:k=>k,CATS:["body","mind"],CATEGORIES:{body:{name:"Body",icon:""},mind:{name:"Mind",icon:""}},
-    syncGoalArea(){},autoDifficulty(){},render(){},toast:s=>toasts.push(s),uid:()=>"new"+goals.length,
-    active:()=>state.goals.filter(g=>!g.archived),isDone:id=>done.includes(id),
+    syncGoalArea(){},autoDifficulty(){},render(){},toast:s=>toasts.push(s),uid:()=>"new"+goals.length,syncToday(){},
+    doneOn:k=>state.log[k]||[],active:()=>state.goals.filter(g=>!g.archived),isDone:id=>(state.log["2026-10-15"]||[]).includes(id),
     estimateDifficulty:n=>n.includes("hard")?3:1,xpForDiff:d=>d*10};
   const names=Object.keys(env).filter(k=>k!=="toasts");
   const api=new Function(...names,code+";return{openGoal,addGoal,closeGoal,get editingId(){return editingId}}")(...names.map(k=>env[k]));
@@ -36,6 +36,18 @@ t("done today: total XP follows the new xp",()=>{
   const a=load([{id:"g1",name:"Walk",category:"body",xp:10}],{done:["g1"],xp:100});
   a.openGoal("body",true,a.state.goals[0]);a.$("goalInput").value="hard run";a.addGoal();
   assert.strictEqual(a.state.xp,120);
+});
+t("done today, made a one-off for tomorrow: today's check and XP are removed",()=>{
+  const a=load([{id:"g1",name:"Walk",category:"body",xp:10}],{done:["g1"],xp:100,view:"2026-10-16"});
+  a.openGoal("body",true,a.state.goals[0]);a.$("goalRepeat").checked=false;a.addGoal();
+  assert.strictEqual(a.state.goals[0].date,"2026-10-16");
+  assert.deepStrictEqual(a.state.log["2026-10-15"],[]);assert.strictEqual(a.state.xp,90);
+});
+t("done today, made a one-off for today: check and XP stay",()=>{
+  const a=load([{id:"g1",name:"Walk",category:"body",xp:10}],{done:["g1"],xp:100});
+  a.openGoal("body",true,a.state.goals[0]);a.$("goalRepeat").checked=false;a.addGoal();
+  assert.strictEqual(a.state.goals[0].date,"2026-10-15");
+  assert.deepStrictEqual(a.state.log["2026-10-15"],["g1"]);assert.strictEqual(a.state.xp,100);
 });
 t("empty name keeps modal in edit mode",()=>{
   const a=load([{id:"g1",name:"Walk",category:"body",xp:10}]);
