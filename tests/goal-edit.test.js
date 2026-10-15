@@ -69,4 +69,34 @@ t("close resets; next add opens blank and adds a new goal",()=>{
   assert.deepStrictEqual([a.$("goalLabel").textContent,a.$("goalTitle").textContent,a.$("saveGoal").textContent],["NEW GOAL","Add a goal","Add goal"]);
   a.$("goalInput").value="Read";a.addGoal();assert.strictEqual(a.state.goals.length,2);assert.strictEqual(a.state.goals[0].name,"Walk");
 });
+// Tester additions
+t("repeat stays on for a from-goal: `from` kept, no date added",()=>{
+  const a=load([{id:"g1",name:"Walk",category:"body",xp:10,from:"2026-10-16"}]);
+  a.openGoal("body",true,a.state.goals[0]);a.addGoal();
+  assert.strictEqual(a.state.goals[0].from,"2026-10-16");assert(!("date"in a.state.goals[0]));
+});
+t("opening Add straight after an edit (no Close) clears edit mode",()=>{
+  const a=load([{id:"g1",name:"Walk",category:"body",xp:10}]);
+  a.openGoal("body",true,a.state.goals[0]);a.openGoal("body",true);
+  assert.strictEqual(a.editingId,null);assert.strictEqual(a.$("saveGoal").textContent,"Add goal");
+  a.$("goalInput").value="Read";a.addGoal();assert.strictEqual(a.state.goals.length,2);assert.strictEqual(a.state.goals[0].name,"Walk");
+});
+t("holding goal B after goal A edits B only",()=>{
+  const a=load([{id:"g1",name:"Walk",category:"body",xp:10},{id:"g2",name:"Read",category:"mind",xp:10}]);
+  a.openGoal("body",true,a.state.goals[0]);a.openGoal("mind",true,a.state.goals[1]);
+  assert.strictEqual(a.$("goalInput").value,"Read");a.$("goalInput").value="Read more";a.addGoal();
+  assert.deepStrictEqual(a.state.goals.map(g=>g.name),["Walk","Read more"]);
+});
+t("not done today: total XP untouched by a re-rate",()=>{
+  const a=load([{id:"g1",name:"Walk",category:"body",xp:10}],{xp:100});
+  a.openGoal("body",true,a.state.goals[0]);a.$("goalInput").value="hard run";a.addGoal();assert.strictEqual(a.state.xp,100);
+});
+t("done today, easier rename: XP drops but never below 0",()=>{
+  const a=load([{id:"g1",name:"hard run",category:"body",xp:30}],{done:["g1"],xp:5});
+  a.openGoal("body",true,a.state.goals[0]);a.$("goalInput").value="Walk";a.addGoal();assert.strictEqual(a.state.xp,0);
+});
+t("name is trimmed on save",()=>{
+  const a=load([{id:"g1",name:"Walk",category:"body",xp:10}]);
+  a.openGoal("body",true,a.state.goals[0]);a.$("goalInput").value="  Walk 5k  ";a.addGoal();assert.strictEqual(a.state.goals[0].name,"Walk 5k");
+});
 console.log(n+" passed");
