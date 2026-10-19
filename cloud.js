@@ -154,6 +154,7 @@ async function sync({quiet=true}={}){
     if(!quiet)L.toast("Sync failed: "+(e.code||e.message||"unknown error"),6000);
   }finally{busy=false}
 }
+L.sync=sync; // pull-to-refresh in app.js re-syncs through the bridge
 // Note local edits with a timestamp (for newest-wins), then upload shortly after typing stops.
 L.onSave(state=>{
   if(!user||!meta)return;
