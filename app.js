@@ -601,6 +601,16 @@ const EASY_RE=/\b(text|call|message|voice note|thank|compliment|smile|make (my|t
 let WORDS=null;
 // Standalone units don't count as words either way, just like numbers ("hjkl 5 hours" is still gibberish).
 const UNITS=new Set(["s","sec","secs","second","seconds","min","mins","minute","minutes","h","hr","hrs","hour","hours","km","kms","m","mi","mile","miles","meter","meters","metre","metres","k","kg","kgs","lb","lbs","pound","pounds","l","liter","liters","litre","litres","ml","rep","reps","set","sets","x"]);
+// Base forms an inflected word may come from: boxes→box/boxe, studies→study, hydrated→hydrat/hydrate, journalled→journal.
+function stems(w){
+  const out=[];
+  for(const[suf,adds]of[["s",[""]],["es",[""]],["ies",["y"]],["ed",["","e"]],["ing",["","e"]]]){
+    if(!w.endsWith(suf)||w.length-suf.length<3)continue;
+    const b=w.slice(0,-suf.length);for(const a of adds)out.push(b+a);
+    if((suf==="ed"||suf==="ing")&&/([b-df-hj-np-tv-z])\1$/.test(b))out.push(b.slice(0,-1));
+  }
+  return out;
+}
 // True if text has at least one real word. Numbers and number+unit tokens ("5", "10k", "3km", "2.5h") are ignored.
 // Lenient on purpose: a goal is unrecognised only when none of its words are known.
 function hasRealWord(text){
@@ -609,8 +619,7 @@ function hasRealWord(text){
   for(const tok of t.match(/[a-z]+(?:'[a-z]+)*/g)||[]){
     if(UNITS.has(tok))continue;
     for(const w of new Set([tok,tok.replace(/'/g,""),tok.replace(/'s$/,"")])){
-      if(WORDS.has(w))return true;
-      const m=w.match(/^(.{4,}?)(?:ing|ed|es|s)$/);if(m&&WORDS.has(m[1]))return true;
+      if(WORDS.has(w)||stems(w).some(s=>WORDS.has(s)))return true;
     }
   }
   // The English list can't judge other scripts (e.g. "走る", "café"), so any non a-z letter counts as recognised.

@@ -8,7 +8,7 @@ const CATEGORIES=new Function(cut("const CATEGORIES=","const CATS=")+";return CA
 const raw=fs.readFileSync(path.join(root,"words.txt"),"utf8"),list=raw.trim().split("\n"),WORDS=new Set(list);
 let n=0;const t=(name,fn)=>{fn();n++;console.log("ok  "+name)};
 
-t("list size 20k-30k, under 300 KB",()=>{assert(list.length>=20000&&list.length<=30000,list.length);assert(raw.length<300*1024)});
+t("list is dictionary-sized (100k+ words) and under 2 MB",()=>{assert(list.length>=100000,list.length);assert(raw.length<2*1024*1024,raw.length)});
 t("list hygiene: lowercase a-z only, no blanks, no duplicates, sorted",()=>{
   assert(list.every(w=>/^[a-z]+$/.test(w)));assert.strictEqual(WORDS.size,list.length);assert.deepStrictEqual([...list].sort(),list);
 });
@@ -21,8 +21,8 @@ t("list not loaded: everything counts as recognised, gibberish rated as before",
   api.setWords(null);assert.strictEqual(api.hasRealWord("asdfgh"),true);assert.strictEqual(api.estimateDifficulty("asdfgh"),2);
 });
 api.setWords(WORDS);
-const no=["asdfgh","hjkl qwrt","aaaaaa","xxxx 5","hjkl 5 hours","5 hours","10k","3km","123","!!!","🏃","$50","5am",""," "];
-const yes=["run 5 km","run 5km","asdf run","走る","Run!","LEETCODE","Don't snooze","pushups x50","push-ups","no-phone","10,000 steps","journal 2 pages","journaling","Plan tomorrow's top 3 priorities"];
+const no=["asdfghs","hjkling","qwrtped","asdfgh","hjkl qwrt","aaaaaa","xxxx 5","hjkl 5 hours","5 hours","10k","3km","123","!!!","🏃","$50","5am",""," "];
+const yes=["boxes","hydrating","hydrated","journalled","studies","Moisturise","run 5 km","run 5km","asdf run","走る","Run!","LEETCODE","Don't snooze","pushups x50","push-ups","no-phone","10,000 steps","journal 2 pages","journaling","Plan tomorrow's top 3 priorities"];
 t("unrecognised goals",()=>{for(const g of no){assert.strictEqual(api.hasRealWord(g),false,g);assert.strictEqual(api.estimateDifficulty(g),0,g)}});
 t("recognised goals",()=>{for(const g of yes){assert.strictEqual(api.hasRealWord(g),true,g);assert(api.estimateDifficulty(g)>0,g)}});
 t("unrated goal earns 0 XP",()=>assert.strictEqual(xpForDiff(api.estimateDifficulty("asdfgh")),0));
