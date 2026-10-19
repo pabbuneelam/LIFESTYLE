@@ -140,7 +140,8 @@ async function push(){
   return dirty.length;
 }
 async function sync({quiet=true}={}){
-  if(!user||busy)return;
+  if(!user)return;
+  if(busy)return"busy";
   if(!navigator.onLine){setStatus("Offline, will sync");return}
   busy=true;setStatus("Syncing…");
   try{
@@ -148,10 +149,12 @@ async function sync({quiet=true}={}){
     await push();
     lastSynced=Date.now();setStatus("synced");
     if(!quiet)L.toast("Synced with your account");
+    return true;
   }catch(e){
     console.warn("[LIFESTYLE] sync failed",e);
     setStatus(navigator.onLine?"Sync error":"Offline, will sync");
     if(!quiet)L.toast("Sync failed: "+(e.code||e.message||"unknown error"),6000);
+    return true;
   }finally{busy=false}
 }
 L.sync=sync; // pull-to-refresh in app.js re-syncs through the bridge

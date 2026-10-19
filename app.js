@@ -980,12 +980,13 @@ async function refresh(){
     render();
     if(!navigator.onLine)toast("Offline: showing saved data");
     else{
-      const shown=$("toast").textContent;
-      if(window.LIFESTYLE.sync)await window.LIFESTYLE.sync({quiet:false});
+      const shown=$("toast").textContent,synced=window.LIFESTYLE.sync&&await window.LIFESTYLE.sync({quiet:false});
       navigator.serviceWorker?.getRegistration().then(r=>r?.update()).catch(()=>{});
       await checkRelease();
       render(); // sync may have replaced state
-      if($("toast").textContent===shown)toast("Up to date"); // keep sync's own "Synced"/"Sync failed" message
+      // sync returns true when it showed its own "Synced"/"Sync failed" toast, "busy" when an auto-sync was already running
+      if(synced==="busy")toast("Already syncing");
+      else if(!synced&&$("toast").textContent===shown)toast("Up to date");
     }
   }finally{
     await new Promise(r=>setTimeout(r,Math.max(0,600-(Date.now()-t0)))); // no flicker on a fast refresh
@@ -1009,7 +1010,10 @@ document.addEventListener("touchmove",e=>{
   if(dy<=0)return ptrCancel();
   e.preventDefault();pull=Math.min(PTR_MAX,dy*.5);ptrSet(pull);
 },{passive:false});
-function ptrEnd(e){if(ptrY===null)return;ptrY=null;if(e.type==="touchend"&&pull>=PTR_AT)refresh();else ptrCancel()}
+// A pull that started on a goal row must not toggle it on release: swallow the click that may follow.
+let eatClickUntil=0;
+document.addEventListener("click",e=>{if(Date.now()<eatClickUntil){e.stopPropagation();e.preventDefault()}},true);
+function ptrEnd(e){if(ptrDecided){ptrDecided=false;eatClickUntil=Date.now()+350}if(ptrY===null)return;ptrY=null;if(e.type==="touchend"&&pull>=PTR_AT)refresh();else ptrCancel()}
 document.addEventListener("touchend",ptrEnd);document.addEventListener("touchcancel",ptrEnd);
 // Check for a new version on every launch and resume; reload once it takes over, but never while someone is typing.
 if("serviceWorker"in navigator){
