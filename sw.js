@@ -1,4 +1,4 @@
-const CACHE="lifestyle-v8";const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./cloud.js","./words.txt"];
+const CACHE="lifestyle-v8";const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./cloud.js","./words.txt","./actions.txt"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS.map(u=>new Request(u,{cache:"reload"})))).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 // Versioned Firebase SDK files never change, so serve them cache-first for offline use.
