@@ -963,6 +963,54 @@ async function checkRelease(){
   try{const html=await(await fetch("./?release="+Date.now(),{cache:"no-store"})).text();const live=(html.match(/app\.js\?v=(\d+)/)||[])[1];if(live&&live!==RELEASE)reloadForRelease()}catch(e){}
 }
 setInterval(checkRelease,10*60*1000);document.addEventListener("visibilitychange",checkRelease);
+// Pull to refresh (iOS standalone PWAs have none): at the top of the page, a vertical pull past 70px re-syncs,
+// re-renders and checks for a newer release. No full reload, so a running timer and typed text survive.
+const PTR_AT=70,PTR_MAX=120,PTR_HOLD=56,ptr=$("ptr"),calm=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+let ptrY=null,ptrX=0,ptrDecided=false,pull=0,refreshing=false;
+function ptrSet(p,settle){
+  ptr.classList.toggle("settle",!!settle&&!calm());
+  ptr.style.transform=`translateY(${p}px)`;ptr.style.opacity=String(Math.min(1,p/PTR_AT));
+  if(!calm())ptr.firstChild.style.transform=`rotate(${p*3}deg)`;
+}
+const ptrCancel=()=>{ptrY=null;if(pull){pull=0;ptrSet(0,true)}};
+async function refresh(){
+  if(refreshing)return;refreshing=true;
+  const t0=Date.now();ptrSet(PTR_HOLD,true);ptr.classList.add("spin");if(calm())toast("Refreshing…");
+  try{
+    render();
+    if(!navigator.onLine)toast("Offline: showing saved data");
+    else{
+      const shown=$("toast").textContent;
+      if(window.LIFESTYLE.sync)await window.LIFESTYLE.sync({quiet:false});
+      navigator.serviceWorker?.getRegistration().then(r=>r?.update()).catch(()=>{});
+      await checkRelease();
+      render(); // sync may have replaced state
+      if($("toast").textContent===shown)toast("Up to date"); // keep sync's own "Synced"/"Sync failed" message
+    }
+  }finally{
+    await new Promise(r=>setTimeout(r,Math.max(0,600-(Date.now()-t0)))); // no flicker on a fast refresh
+    ptr.classList.remove("spin");pull=0;ptrSet(0,true);refreshing=false;
+  }
+}
+document.addEventListener("touchstart",e=>{
+  ptrY=null;
+  if(refreshing||e.touches.length!==1||window.scrollY>0||document.querySelector(".modal:not(.hidden)")||!$("menuList").classList.contains("hidden")||e.target.closest?.("input,textarea,select,#menuList"))return;
+  ptrY=e.touches[0].clientY;ptrX=e.touches[0].clientX;ptrDecided=false;pull=0;
+},{passive:true});
+document.addEventListener("touchmove",e=>{
+  if(ptrY===null)return;
+  if(e.touches.length!==1||window.scrollY>0)return ptrCancel();
+  const dy=e.touches[0].clientY-ptrY,dx=e.touches[0].clientX-ptrX;
+  if(!ptrDecided){
+    if(Math.abs(dy)<10&&Math.abs(dx)<10)return;
+    if(dy<=0||Math.abs(dx)>=Math.abs(dy)){ptrY=null;return} // upward scroll or a goal-row swipe: hands off
+    ptrDecided=true;
+  }
+  if(dy<=0)return ptrCancel();
+  e.preventDefault();pull=Math.min(PTR_MAX,dy*.5);ptrSet(pull);
+},{passive:false});
+const ptrEnd=e=>{if(ptrY===null)return;ptrY=null;if(e.type==="touchend"&&pull>=PTR_AT)refresh();else ptrCancel()};
+document.addEventListener("touchend",ptrEnd);document.addEventListener("touchcancel",ptrEnd);
 // Check for a new version on every launch and resume; reload once it takes over, but never while someone is typing.
 if("serviceWorker"in navigator){
   const hadController=!!navigator.serviceWorker.controller;let pendingReload=false,reloaded=false;
