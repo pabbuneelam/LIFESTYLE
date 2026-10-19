@@ -1012,7 +1012,8 @@ function loadWords(){for(const f of["words","actions"])fetch(`./${f}.txt`).then(
 document.querySelectorAll(".page").forEach(p=>p.addEventListener("animationend",e=>{if(e.target===p)p.classList.remove("entering")}));
 // Launch intro is CSS-only; drop the node when it ends, with a timer in case animationend never fires.
 const launch=$("launch");
-if(launch){if(matchMedia("(prefers-reduced-motion: reduce)").matches)launch.remove();else{launch.addEventListener("animationend",e=>{if(e.target===launch)launch.remove()});setTimeout(()=>launch.remove(),1500)}}
+// Hide (not remove) the intro when it ends, so the "#launch~.app" entrance delays in style.css keep matching.
+if(launch){const done=()=>launch.classList.add("hidden");launch.addEventListener("animationend",e=>{if(e.target===launch)done()});setTimeout(done,2600)}
 // A tab left open compares its release stamp (tools/stamp-version.sh) with the live one every 10 minutes and on
 // return, and reloads into a newer release — but never while someone is typing.
 const RELEASE=(document.querySelector('script[src^="app.js"]')?.getAttribute("src").match(/v=(\d+)/)||[])[1];

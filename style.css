@@ -207,12 +207,17 @@ button.wk{background:none;border:0;padding:0;font:inherit;cursor:pointer;-webkit
 .page.entering{animation:pageSwap .3s var(--ease) both}
 @keyframes pageSwap{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.page.entering{animation:none}}
-/* ---------- launch intro: wordmark sharpens in, then the overlay fades to reveal the already-rendered app (900ms total) ---------- */
-#launch{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;pointer-events:none;animation:launchOut .3s ease-out .6s both}
-.launch-mark{font-size:clamp(26px,8vw,40px);font-weight:900;letter-spacing:-.04em;color:var(--text);animation:launchIn .45s var(--ease) both}
-@keyframes launchIn{from{opacity:0;transform:scale(.92);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+/* ---------- launch intro (~1.8s, plays once per cold start): the silver wordmark focuses in, a light sweeps across it,
+   then it zooms through while the curtain lifts and the app rises in underneath. Taps pass through the whole time. ---------- */
+#launch{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;pointer-events:none;animation:launchOut .5s var(--ease) 1.3s both}
+.launch-mark{font-size:clamp(30px,9vw,46px);font-weight:900;letter-spacing:-.04em;background:linear-gradient(105deg,#b4b4bc 40%,#fff 50%,#b4b4bc 60%) 150% 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:launchIn .8s var(--ease) .1s both,launchShine 1s cubic-bezier(.77,0,.175,1) .45s both,launchAway .5s var(--ease) 1.25s forwards}
+@keyframes launchIn{from{opacity:0;transform:scale(.94);filter:blur(12px)}to{opacity:1;transform:none;filter:none}}
+@keyframes launchShine{to{background-position:-50% 0}}
+@keyframes launchAway{to{opacity:0;transform:scale(1.08);filter:blur(4px)}}
 @keyframes launchOut{to{opacity:0}}
-@media(prefers-reduced-motion:reduce){#launch{display:none}}
+/* While the intro is up (#launch is hidden, not removed, when it ends), the app's own entrance waits for the curtain to lift. */
+#launch~.app .topbar,#launch~.app .stat,#launch~.app .panel{animation-delay:1.3s}#launch~.app .stat:nth-child(2){animation-delay:1.36s}#launch~.app .stat:nth-child(3){animation-delay:1.42s}
+@media(prefers-reduced-motion:reduce){.launch-mark{animation:fadeIn .4s ease .1s both}#launch{animation:launchOut .4s ease 1s both}}
 /* ---------- pull to refresh: a small card that follows the pull, then spins while syncing ---------- */
 html,body{overscroll-behavior-y:contain}
 #ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top) - 32px);width:32px;height:32px;margin-left:-16px;border-radius:50%;background:var(--card);border:1px solid var(--line-strong);display:grid;place-items:center;z-index:40;opacity:0;pointer-events:none;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}

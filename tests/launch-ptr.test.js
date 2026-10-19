@@ -11,22 +11,22 @@ t("#launch is the first child of <body>, followed by the session-skip script",()
   assert(b.startsWith('<div id="launch" aria-hidden="true"><span class="launch-mark">LIFESTYLE</span></div>\n<script>'));
   assert(/sessionStorage\.getItem\("launched"\)\)document\.getElementById\("launch"\)\.remove\(\);else sessionStorage\.setItem\("launched","1"\)\}catch\(e\)\{\}/.test(b));
 }),
-t("launch CSS: no taps blocked, timing totals 900ms, composite-only keyframes, hidden under reduced motion",()=>{
-  assert(/#launch\{[^}]*pointer-events:none[^}]*animation:launchOut \.3s ease-out \.6s both/.test(css));
-  assert(/\.launch-mark\{[^}]*animation:launchIn \.45s var\(--ease\) both/.test(css));
-  const kf=css.match(/@keyframes launchIn\{.*?\}\}/)[0]+css.match(/@keyframes launchOut\{.*?\}\}/)[0];
-  assert(!/width|height|top|left/.test(kf),kf);
-  assert(css.includes("@media(prefers-reduced-motion:reduce){#launch{display:none}}"));
+t("launch CSS: no taps blocked, ~1.8s timeline, composite-only motion, app entrance waits, gentle under reduced motion",()=>{
+  assert(/#launch\{[^}]*pointer-events:none[^}]*animation:launchOut \.5s var\(--ease\) 1\.3s both/.test(css));
+  assert(/\.launch-mark\{[^}]*animation:launchIn \.8s var\(--ease\) \.1s both,launchShine 1s cubic-bezier\(\.77,0,\.175,1\) \.45s both,launchAway \.5s var\(--ease\) 1\.25s forwards/.test(css));
+  const kf=["launchIn","launchAway","launchOut"].map(k=>css.match(new RegExp("@keyframes "+k+"\\{.*?\\}\\}"))[0]).join("");
+  assert(!/width|height|top|left|margin|padding/.test(kf),kf);
+  assert(/@keyframes launchShine\{to\{background-position:-50% 0\}\}/.test(css));
+  assert(css.includes("#launch~.app .topbar,#launch~.app .stat,#launch~.app .panel{animation-delay:1.3s}"));
+  assert(css.includes("@media(prefers-reduced-motion:reduce){.launch-mark{animation:fadeIn .4s ease .1s both}#launch{animation:launchOut .4s ease 1s both}}"));
 }),
-t("launch removal: own animationend only, 1500ms safety net, immediate under reduced motion",()=>{
+t("launch end: hidden (not removed) on its own animationend, 2600ms safety net",()=>{
   const line=src.split("\n").find(l=>l.startsWith("if(launch)"));
-  const run=reduced=>{const timers=[],ls={},el={removed:0,remove(){this.removed++},addEventListener:(t,f)=>ls[t]=f};
-    new Function("launch","matchMedia","setTimeout",line)(el,()=>({matches:reduced}),(f,ms)=>timers.push([f,ms]));return{el,ls,timers}};
-  const r=run(true);assert.strictEqual(r.el.removed,1);assert.strictEqual(r.timers.length,0);
-  const a=run(false);assert.strictEqual(a.el.removed,0);
-  a.ls.animationend({target:{}});assert.strictEqual(a.el.removed,0,"child animation must not remove");
-  a.ls.animationend({target:a.el});assert.strictEqual(a.el.removed,1);
-  assert.strictEqual(a.timers[0][1],1500);
+  const timers=[],ls={},cls=new Set(),el={removed:0,remove(){this.removed++},classList:{add:c=>cls.add(c)},addEventListener:(t,f)=>ls[t]=f};
+  new Function("launch","setTimeout",line)(el,(f,ms)=>timers.push([f,ms]));
+  ls.animationend({target:{}});assert(!cls.has("hidden"),"child animation must not end the intro");
+  ls.animationend({target:el});assert(cls.has("hidden"));assert.strictEqual(el.removed,0,"must stay in the DOM for the sibling selector");
+  assert.strictEqual(timers[0][1],2600);
 }),
 t("cloud.js exposes sync on the bridge; SW cache bumped",()=>{
   assert(/\n\}\nL\.sync=sync;/.test(cloud));assert(sw.includes('const CACHE="lifestyle-v8"'));
