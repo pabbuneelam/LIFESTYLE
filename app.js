@@ -632,8 +632,12 @@ function hasRealWord(text){
 const STOP=new Set("a an the my your our his her their its this that these those to of in on at for with and or by from".split(" "));
 // A number with its unit is one token: "5km", "5 km", "10,000", "$50", "5am".
 const NUM_UNIT=new RegExp("\\d+(?:[.,]\\d+)*(?:\\s*(?:"+[...UNITS].join("|")+")\\b|[a-z]{0,3}\\b)?","g");
-// Limits and abstaining are tasks without a verb: "No sugar today", "Less than 2 hours of screen time".
-const ABSTAIN_RE=/\b(no|zero|less than|under|at most|max(imum)?|without|out of)\b/;
+// Limits and abstaining are tasks without a verb: "No sugar today", "Less than 2 hours of screen time", "Tea not coffee".
+const ABSTAIN_RE=/\b(no|zero|less than|under|at most|max(imum)?|without|out of)\b|\w\s+not\s+\w/;
+// A duration is an action on its own: "Guitar 30 min", "Sauna 15 min" (times of day like "10pm" are not).
+const DURATION_RE=/\d\s*(?:s|secs?|seconds?|m|mins?|minutes?|h|hrs?|hours?)\b/;
+// Noun phrases that name a task: "Chest day", "Movie night", "Dentist appointment" is covered by actions.txt.
+const TASK_RE=/\b(?:leg|chest|arm|back|shoulder|core|abs|cardio|spa|chess|rest|self[- ]care|pull|push)\s+day\b|\b(?:movie|date|game|pizza|family|board game)\s+night\b/;
 // A goal is a task when it has 2+ meaningful tokens (real words or numbers) and an action word: a verb or
 // activity from actions.txt (stems() catches reading/walked), a limit/abstain phrase, or any difficulty-rule hit.
 function isTask(text){
@@ -641,9 +645,12 @@ function isTask(text){
   const t=text.toLowerCase();
   // The English lists can't judge other scripts, so those goals are rated as before.
   if(/\p{L}/u.test(t.replace(/[a-z]/g,"")))return true;
-  const nums=(t.match(NUM_UNIT)||[]).length,words=(t.replace(NUM_UNIT," ").match(/[a-z]+(?:'[a-z]+)*/g)||[]).filter(w=>inList(WORDS,w));
-  if(nums+words.filter(w=>!STOP.has(w)).length<2)return false;
-  return words.some(w=>inList(ACTIONS,w))||[ABSTAIN_RE,HARD_RE,AREA_HARD_RE,EASY_RE,INTENSE_RE].some(r=>r.test(" "+t+" "));
+  const nums=(t.match(NUM_UNIT)||[]).length,toks=(t.replace(NUM_UNIT," ").match(/[a-z]+(?:'[a-z]+)*/g)||[]).filter(w=>!STOP.has(w));
+  const words=toks.filter(w=>inList(WORDS,w)||inList(ACTIONS,w));
+  const action=words.some(w=>inList(ACTIONS,w))||[DURATION_RE,ABSTAIN_RE,TASK_RE,HARD_RE,AREA_HARD_RE,EASY_RE,INTENSE_RE].some(r=>r.test(" "+t+" "));
+  // With an action word, a Capitalised unknown token is a name ("Call Priya", "Feed Mochi"); lowercase "asdf run" stays unrated.
+  const names=action?(text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g)||[]).filter(w=>/^[A-Z]/.test(w)&&!inList(WORDS,w.toLowerCase())&&!inList(ACTIONS,w.toLowerCase())).length:0;
+  return action&&nums+words.length+names+(/\b(?:weigh|check)[- ]in\b/.test(t)?1:0)>=2;
 }
 // 0 = can't rate (no real word, or not a task), XP 0; else 1 Easy / 2 Medium / 3 Hard.
 function estimateDifficulty(text){

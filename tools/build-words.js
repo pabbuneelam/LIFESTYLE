@@ -25,9 +25,10 @@ calisthenics plank planks deadlifts hypertrophy protein electrolytes probiotics 
 unsubscribe journalled journalling skincare sunscreen spf retinol serum moisturiser moisturizer
 hydrate rehydrate hydration oatmeal smoothie smoothies matcha kombucha veggies
 pomodoro todo todos inbox anki quizlet khan coursera udemy codecademy hackerrank kaggle figma canva
-whatsapp facetime discord twitch pinterest strava fitbit peloton headspace calm notion obsidian`.split(/\s+/);
+whatsapp facetime discord twitch pinterest strava fitbit peloton headspace calm notion obsidian
+pickleball stairmaster mcat lsat gmat taraweeh kegel kegels standup`.split(/\s+/);
 // Fragments left over from regex syntax in app.js (e.g. "promot(ed|ion)", "boundar", "organi[sz]e"); not words.
-const JUNK=new Set(["promot","boundar","organi","memori","snoo","raw","ed","ion","imum","sz","zs"]);
+const JUNK=new Set(["promot","boundar","organi","memori","snoo","raw","ed","ion","imum","sz","zs","df","hj","ies","ith","nums","suf","toks","tv"]);
 
 const words=s=>s.toLowerCase().match(/[a-z]+/g)||[];
 const app=fs.readFileSync(path.join(ROOT,"app.js"),"utf8");

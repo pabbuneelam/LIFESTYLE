@@ -31,6 +31,7 @@ abrase
 abreact
 abridge
 abrogate
+abs
 abscise
 abscond
 abseil
@@ -351,6 +352,7 @@ applied
 applique
 apply
 appoint
+appointment
 apportion
 appose
 appraise
@@ -366,6 +368,7 @@ approve
 approximate
 aquaplane
 aquatint
+arabic
 arbitrage
 arbitrate
 arborise
@@ -405,6 +408,7 @@ ascertain
 ascribe
 ash
 ask
+asleep
 asperse
 asphalt
 asphyxiate
@@ -539,6 +543,7 @@ bacterize
 bade
 badge
 badger
+badminton
 badmouth
 baffle
 bag
@@ -606,10 +611,12 @@ barricado
 barring
 barter
 base
+baseball
 bash
 basified
 basify
 bask
+basketball
 basset
 bastardise
 bastardize
@@ -676,6 +683,7 @@ bedimmed
 bedimming
 bedizen
 bedraggle
+bedtime
 beef
 been
 beep
@@ -820,6 +828,7 @@ bias
 biassed
 biassing
 bib
+bible
 bicker
 bicycle
 bid
@@ -1032,6 +1041,7 @@ bottlefeed
 bottleneck
 bottom
 bought
+bouldering
 bounce
 bound
 bourgeon
@@ -1043,6 +1053,7 @@ bower
 bowl
 bowse
 box
+boxing
 boycott
 brabble
 brace
@@ -1274,6 +1285,7 @@ calliper
 callous
 callus
 calm
+calories
 calumniate
 calve
 camber
@@ -1441,6 +1453,7 @@ caw
 cease
 cede
 celebrate
+cello
 cement
 cense
 censor
@@ -1511,6 +1524,7 @@ cheapen
 cheat
 check
 checker
+checkin
 checkmate
 checkrow
 cheek
@@ -1523,6 +1537,7 @@ chemisorb
 cheque
 chequer
 cherish
+chess
 chevied
 chevies
 chevvy
@@ -1539,6 +1554,7 @@ chill
 chime
 chin
 chine
+chinese
 chink
 chinned
 chinning
@@ -1656,6 +1672,7 @@ clapping
 claret
 clarified
 clarify
+clarinet
 clarion
 clash
 clasp
@@ -1683,6 +1700,7 @@ clew
 click
 climax
 climb
+climbing
 clinch
 cling
 clink
@@ -2290,6 +2308,7 @@ cutinize
 cutting
 cybernate
 cycle
+cycling
 cyclostyle
 cypher
 dab
@@ -3115,6 +3134,7 @@ drugging
 drum
 drummed
 drumming
+drums
 drunk
 dry
 drydock
@@ -3215,6 +3235,7 @@ elevate
 elicit
 elide
 eliminate
+elliptical
 elocute
 elongate
 elope
@@ -3596,6 +3617,7 @@ eyeball
 eyewitness
 fabricate
 face
+facetime
 facetted
 facetting
 facilitate
@@ -3874,6 +3896,7 @@ fondle
 fool
 foolproof
 foot
+football
 footle
 footnote
 footslog
@@ -4021,6 +4044,7 @@ frigging
 fright
 frighten
 fringe
+frisbee
 frisk
 fritted
 fritter
@@ -4177,6 +4201,7 @@ generate
 gentle
 gentrify
 genuflect
+german
 germinate
 gerrymander
 gestate
@@ -4262,6 +4287,7 @@ gluttonise
 gluttonize
 glycerolise
 glycerolize
+gmat
 gnarl
 gnash
 gnaw
@@ -4311,6 +4337,8 @@ grass
 grate
 gratified
 gratify
+gratitude
+gratitudes
 grave
 gravel
 gravelled
@@ -4319,6 +4347,7 @@ graven
 gravitate
 gray
 graze
+gre
 grease
 green
 greet
@@ -4344,6 +4373,7 @@ gritting
 grizzle
 groak
 groan
+groceries
 groin
 grok
 groom
@@ -4378,6 +4408,7 @@ guffaw
 guggle
 guide
 guillotine
+guitar
 gull
 gullied
 gulp
@@ -4410,6 +4441,7 @@ had
 haemagglutinate
 haggle
 hail
+haircut
 hale
 halloo
 hallow
@@ -4547,6 +4579,7 @@ hijack
 hike
 hill
 hinder
+hindi
 hinge
 hinnied
 hint
@@ -4568,6 +4601,7 @@ hobnob
 hobnobbed
 hobnobbing
 hock
+hockey
 hocussed
 hocussing
 hoe
@@ -5061,6 +5095,7 @@ isolate
 isomerise
 isomerize
 issue
+italian
 italicise
 italicize
 itch
@@ -5089,6 +5124,7 @@ jamming
 jampack
 jangle
 japan
+japanese
 japanned
 japanning
 jar
@@ -5186,6 +5222,7 @@ jut
 jutted
 jutting
 juxtapose
+kanji
 kayak
 kayo
 keel
@@ -5250,6 +5287,7 @@ knotting
 know
 known
 knuckle
+korean
 kotow
 kowtow
 kvetch
@@ -5314,6 +5352,7 @@ last
 latch
 lateralize
 lather
+latin
 latinise
 latinize
 laud
@@ -5486,6 +5525,7 @@ love
 low
 lowball
 lower
+lsat
 lube
 lubricate
 lucubrate
@@ -5551,6 +5591,7 @@ mambo
 man
 manacle
 manage
+mandarin
 mandate
 manducate
 maneuver
@@ -5607,6 +5648,7 @@ marvelling
 masculinise
 masculinize
 mash
+masjid
 mask
 masquerade
 mass
@@ -5632,6 +5674,7 @@ maul
 maunder
 maximise
 maximize
+mcat
 meal
 mealprep
 mean
@@ -5887,6 +5930,7 @@ mortify
 mortise
 mosey
 mosh
+mosque
 mothball
 mother
 mothproof
@@ -6602,6 +6646,7 @@ peeve
 peg
 pegged
 pegging
+peloton
 pelt
 pen
 penalise
@@ -6697,9 +6742,11 @@ photostat
 phrase
 physicked
 physicking
+piano
 pick
 picket
 pickle
+pickleball
 picnic
 picnicked
 picnicking
@@ -6727,6 +6774,7 @@ pin
 pinch
 pine
 ping
+pingpong
 pinion
 pink
 pinkify
@@ -6882,6 +6930,7 @@ portend
 porter
 portion
 portray
+portuguese
 pose
 posit
 position
@@ -7105,6 +7154,7 @@ prosper
 prostitute
 prostrate
 protect
+protein
 protest
 protract
 protrude
@@ -7243,6 +7293,7 @@ quizzed
 quizzes
 quizzing
 quote
+quran
 rabbet
 rabbit
 race
@@ -7767,6 +7818,7 @@ resuspend
 ret
 retail
 retain
+retainer
 retake
 retaken
 retaliate
@@ -7937,6 +7989,7 @@ roost
 root
 rootle
 rope
+rosary
 rose
 rosin
 rot
@@ -7952,10 +8005,12 @@ round
 rouse
 rout
 route
+routine
 rove
 row
 rowelled
 rowelling
+rowing
 rub
 rubbed
 rubber
@@ -7974,6 +8029,7 @@ ruddle
 rue
 ruff
 ruffle
+rugby
 ruggedise
 ruggedize
 ruin
@@ -7991,6 +8047,7 @@ rung
 running
 rupture
 rush
+russian
 rust
 rusticate
 rustle
@@ -8062,6 +8119,7 @@ satisfise
 satisfy
 saturate
 sauce
+sauna
 saunter
 saute
 savage
@@ -8072,6 +8130,7 @@ savvied
 savvy
 saw
 sawn
+saxophone
 say
 scab
 scaffold
@@ -8498,6 +8557,7 @@ sizzle
 skank
 skate
 skateboard
+skating
 skedaddle
 skellied
 skenned
@@ -8511,6 +8571,7 @@ ski
 skid
 skidded
 skidding
+skiing
 skim
 skimcoat
 skimmed
@@ -8708,6 +8769,7 @@ snort
 snow
 snowball
 snowboard
+snowboarding
 snowmobile
 snowshoe
 snub
@@ -8726,6 +8788,7 @@ sob
 sobbed
 sobbing
 sober
+soccer
 socialise
 socialize
 sock
@@ -8734,6 +8797,7 @@ sodded
 sodding
 sodomise
 sodomize
+softball
 soften
 soil
 sojourn
@@ -8794,6 +8858,7 @@ spancelled
 spancelling
 spang
 spangle
+spanish
 spank
 spanned
 spanning
@@ -8963,6 +9028,7 @@ stage
 stagger
 stagnate
 stain
+stairmaster
 stake
 stale
 stalemate
@@ -9259,6 +9325,7 @@ sunder
 sung
 sunk
 sunken
+sunlight
 sunned
 sunning
 suntan
@@ -9294,6 +9361,7 @@ surf
 surface
 surfboard
 surfeit
+surfing
 surge
 surmise
 surmount
@@ -9453,6 +9521,7 @@ taper
 tapped
 tapping
 tar
+taraweeh
 target
 tariff
 tarmac
@@ -9505,6 +9574,7 @@ televise
 telex
 tell
 temper
+temple
 temporise
 temporize
 tempt
@@ -9513,6 +9583,7 @@ tend
 tender
 tenderise
 tenderize
+tennis
 tense
 tent
 tenure
@@ -9784,6 +9855,7 @@ travesty
 trawl
 tread
 treadle
+treadmill
 treasure
 treat
 treble
@@ -9917,6 +9989,7 @@ tyrannise
 tyrannize
 uglified
 uglify
+ukulele
 ulcerate
 ultracentrifuge
 ululate
@@ -10205,6 +10278,7 @@ upswollen
 upswung
 urbanise
 urbanize
+urdu
 urge
 urinate
 urticate
@@ -10296,7 +10370,9 @@ vilify
 vilipend
 vindicate
 vinify
+viola
 violate
+violin
 virilise
 virilize
 visa
@@ -10317,6 +10393,7 @@ vituperate
 vivified
 vivify
 vivisect
+vocab
 vocalise
 vocalize
 vociferate
@@ -10325,6 +10402,7 @@ void
 volatilise
 volatilize
 volley
+volleyball
 volunteer
 vomit
 voodoo
@@ -10432,8 +10510,10 @@ weed
 weekend
 weep
 weigh
+weighin
 weight
 weightlift
+weights
 welch
 welcome
 weld

@@ -55489,6 +55489,7 @@ glyptographies
 glyptographs
 glyptography
 gm
+gmat
 gms
 gnarl
 gnarled
@@ -71425,6 +71426,8 @@ keffiyeh
 keffiyehs
 kefs
 keg
+kegel
+kegels
 kegger
 keggers
 kegler
@@ -76910,6 +76913,7 @@ lozenges
 lozengy
 lr
 ls
+lsat
 lt
 ltd
 lu
@@ -79945,6 +79949,7 @@ mb
 mbabane
 mbini
 mboya
+mcat
 md
 mdse
 me
@@ -97915,6 +97920,7 @@ pickiness
 picking
 pickings
 pickle
+pickleball
 pickled
 pickles
 pickling
@@ -124224,6 +124230,7 @@ stairhead
 stairheads
 stairlift
 stairlifts
+stairmaster
 stairs
 stairway
 stairways
@@ -124370,6 +124377,7 @@ standpoints
 stands
 standstill
 standstills
+standup
 stane
 stanes
 stanford
@@ -129997,6 +130005,7 @@ taranto
 tarantula
 tarantulas
 tarawa
+taraweeh
 taraxacum
 tarazed
 tarbell

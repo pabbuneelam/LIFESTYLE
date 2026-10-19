@@ -16,7 +16,15 @@ const SHA256="640db279c949a88f61f851dd54ebbb22d003f8b90b85267042ef85a3781d3a52";
 const ACTIVITY=`gym yoga pilates workout workouts cardio hiit crossfit zumba homework prayer prayers journal journaling journalling
 meditation run walk swim hike sport sports practice study session meal prep mealprep flashcards duolingo leetcode therapy
 class lesson lecture chores laundry errands shower bath nap breakfast lunch dinner skincare exercise exercises training
-stretches pushups pullups situps burpees squats lunges planks laps steps reps sets sprints marathon jog`.split(/\s+/);
+stretches pushups pullups situps burpees squats lunges planks laps steps reps sets sprints marathon jog
+guitar piano violin cello viola drums flute ukulele saxophone trumpet clarinet harp singing choir band
+tennis soccer football basketball baseball volleyball pickleball badminton golf chess hockey rugby cricket softball
+boxing climbing bouldering skating skiing snowboarding surfing cycling rowing frisbee pingpong
+spanish french german italian japanese chinese mandarin korean arabic hindi urdu portuguese russian latin kanji vocab
+treadmill elliptical stairmaster peloton sauna weights abs core spin
+appointment haircut chores laundry groceries errands routine session bedtime asleep checkin weighin
+bible quran rosary masjid mosque church temple taraweeh sunlight retainer protein calories gratitude gratitudes
+facetime mcat lsat gre gmat`.split(/\s+/);
 
 (async()=>{
   const res=await fetch(SRC);if(!res.ok)throw new Error("download failed: "+res.status);
