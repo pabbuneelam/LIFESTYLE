@@ -407,6 +407,7 @@ ascend
 ascertain
 ascribe
 ash
+ashwagandha
 ask
 asleep
 asperse
@@ -852,6 +853,7 @@ binned
 binning
 bioassay
 biodegrade
+biotin
 birch
 bird
 birdie
@@ -1687,6 +1689,7 @@ claw
 claxon
 clean
 cleanse
+cleanser
 clear
 cleat
 cleave
@@ -1799,6 +1802,7 @@ coke
 coldcock
 coldwork
 collaborate
+collagen
 collapse
 collar
 collate
@@ -3229,6 +3233,8 @@ electioneer
 electrified
 electrify
 electrocute
+electrolyte
+electrolytes
 electroplate
 elegise
 elegize
@@ -3722,6 +3728,8 @@ feudalize
 fib
 fibbed
 fibbing
+fiber
+fibre
 fibrillate
 fictionalise
 fictionalize
@@ -5517,6 +5525,7 @@ lord
 lose
 lost
 lot
+lotion
 lotted
 lotting
 louden
@@ -5570,6 +5579,7 @@ madder
 madding
 made
 madrigal
+magnesium
 magnetise
 magnetize
 magnified
@@ -5695,6 +5705,7 @@ meditation
 meet
 melanise
 melanize
+melatonin
 meld
 meliorate
 mellow
@@ -6186,6 +6197,7 @@ ogle
 oil
 oink
 okay
+omega
 omen
 omit
 omitted
@@ -6983,6 +6995,8 @@ preachify
 preamble
 prearrange
 preassemble
+prebiotic
+prebiotics
 precancelled
 precancelling
 precede
@@ -7085,6 +7099,8 @@ prize
 prizefight
 probate
 probe
+probiotic
+probiotics
 problem
 problems
 proceed
@@ -9734,6 +9750,7 @@ tolerate
 toll
 tomahawk
 tone
+toner
 tongue
 tonsure
 took
@@ -10393,6 +10410,7 @@ visualise
 visualize
 vitalise
 vitalize
+vitamin
 vitaminise
 vitaminize
 vitamins

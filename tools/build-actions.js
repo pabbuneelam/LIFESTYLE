@@ -25,7 +25,9 @@ treadmill elliptical stairmaster peloton sauna weights abs core spin
 appointment haircut chores laundry groceries errands routine session bedtime asleep checkin weighin
 bible quran rosary masjid mosque church temple taraweeh sunlight retainer protein calories gratitude gratitudes
 facetime mcat lsat gre gmat
-problem problems sunscreen spf multivitamin multivitamins vitamins supplements moisturizer moisturiser retinol serum creatine`.split(/\s+/);
+problem problems sunscreen spf multivitamin multivitamins vitamins supplements moisturizer moisturiser retinol serum creatine
+vitamin supplement melatonin magnesium probiotic probiotics prebiotic prebiotics ashwagandha collagen electrolyte electrolytes
+omega biotin fiber fibre toner cleanser lotion`.split(/\s+/);
 
 (async()=>{
   const res=await fetch(SRC);if(!res.ok)throw new Error("download failed: "+res.status);
