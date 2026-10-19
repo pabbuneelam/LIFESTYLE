@@ -72,7 +72,7 @@ function weekStart(k=today()){const d=parse(k),off=(d.getDay()+6)%7;return addDa
 function fresh(){return{name:"",goals:[],log:{},xp:0,bestStreak:0,history:{},journal:{},program:null,challenges:[],daily:{},weekly:{},focus:{},metrics:{},todos:[],rankDates:{0:today()},firstDay:today()}}
 function migrate(old){
   const s=fresh();
-  s.goals=(old.goals||[]).map(g=>({id:g.id||uid(),name:g.name,category:CATEGORIES[g.category]?g.category:"discipline",xp:g.xp||10}));
+  s.goals=(old.goals||[]).map(g=>({id:g.id||uid(),name:g.name,category:CATEGORIES[g.category]?g.category:"discipline",xp:g.xp??10}));
   s.log[today()]=(old.goals||[]).filter(g=>g.done).map(g=>g.id);
   s.xp=old.xp||0;s.bestStreak=old.bestStreak||0;s.history=old.history||{};
   Object.entries(old.journal||{}).forEach(([k,v])=>{if(v)s.journal[k]={text:String(v),mood:null}});
@@ -554,7 +554,7 @@ function toggle(id){
   if(g.date&&g.date>k){toast("Locked until "+fmtDate(g.date,{weekday:"long"})+".");return}
   const arr=state.log[k]||(state.log[k]=[]),was=state.history[k]?.completed;
   if(arr.includes(id)){state.log[k]=arr.filter(x=>x!==id);gainXP(-g.xp,"Goal unchecked.")}
-  else{arr.push(id);gainXP(g.xp,"+"+g.xp+" XP · "+CATEGORIES[g.category].name)}
+  else{arr.push(id);gainXP(g.xp,(g.xp?"+"+g.xp+" XP · ":"Done · ")+CATEGORIES[g.category].name)}
   syncToday();
   if(!was&&state.history[k]?.completed)toast(`Perfect day. Streak ${streak()} 🔥`);
   render();
@@ -597,7 +597,28 @@ const INTENSE_RE=/\b(all day|entire|whole day|without (stopping|a break|breaks|e
 // Big outcomes and all-day abstinence are hard; quick, low-effort habits are easy.
 const HARD_RE=/\b(no (social media|sugar|junk|phone|youtube|tiktok|reels|shorts|complaining|caffeine|alcohol|porn|vaping|weed)\b|whole day|all day|entire day|cold (shower|plunge|water)|fasting|marathon|triathlon|ironman|inbox to zero|(have|do|pass|ace|nail) (a |an |my |the )?(job |final |real )?interview|apply to (several|multiple|many|five|ten|\d+)|publish|pitch|scares|spend 0|finish one chapter|90 days|internship|(land|get|find|secure) (a |an |the |my )?(new )?(job|internship|offer|role|position|client|sponsor)|job offer|get hired|promot(ed|ion)|(ask|get) (for )?a raise|start (a|my) (business|company|side hustle)|launch|(pass|ace) (the |my |an? )?(exam|test|final|midterm|interview)|get into (college|university|grad school)|scholarship|certification|finish (the|my|a) (project|book|thesis|app|course|degree|portfolio)|write (a|my) (book|thesis|essay|paper)|quit (smoking|vaping|drinking|weed|porn|caffeine|sugar)|lose \d+ ?(lbs?|pounds?|kg|kilos?)|personal record|\bpr\b|deadlift|max out)/;
 const EASY_RE=/\b(text|call|message|voice note|thank|compliment|smile|make (my|the) bed|drink|water (the )?plants|stretch|grateful|gratitude|breath|breathing|note|hug|set out|name one|notice|listen to music|nap|say yes|wake up (early|on time|at my planned time)|get up early|on time|vitamins?|supplements?|floss|brush|skincare|eat breakfast|pray|prayer|pack my bag|plan tomorrow|plan (my|the) day|set (an |my )?alarm|go outside|get sunlight|take out the trash|tidy|walk the dog|feed|reply|check in|take the stairs|say (hi|hello)|wave|greet|put (my |the )?phone away|do the dishes|fill (my |a )?(water )?bottle|charge (my )?phone|deep breaths?|listen to (calming |relaxing |some |one )?(music|songs?|a song)|short|quick|(write|jot) down (my |one |an? )(\w+ )?(goal|idea|thought|plan|to-?do)|put (my |the )?\w+ away|hang up (my |the )?\w+|wash (my |a |the )?(water bottle|bottle|cup|mug|plate|dish)|empty the (dishwasher|bin|trash)|wipe (down )?the|like (a |my )?\w*'?s? post|react to|look at|notice|shake out|walk (around the block|to the (mailbox|corner|store))|read (a|an|one) (news |short |blog )?(article|story|post|poem|quote|success story)|say (one|something) (positive|kind|nice)|bookmark|follow (a|an) (mentor|account|creator|page|person)|follow someone|read about|update my (linkedin |profile )?(photo|picture|pic|bio)|(one|a single|1) (new )?(word|article|idea|line|sentence|song|fact|quote|tip|goal))\b/;
+// null until words.txt has loaded; while null every goal counts as recognised (old behaviour) so nothing is mis-rejected.
+let WORDS=null;
+// Standalone units don't count as words either way, just like numbers ("hjkl 5 hours" is still gibberish).
+const UNITS=new Set(["s","sec","secs","second","seconds","min","mins","minute","minutes","h","hr","hrs","hour","hours","km","kms","m","mi","mile","miles","meter","meters","metre","metres","k","kg","kgs","lb","lbs","pound","pounds","l","liter","liters","litre","litres","ml","rep","reps","set","sets","x"]);
+// True if text has at least one real word. Numbers and number+unit tokens ("5", "10k", "3km", "2.5h") are ignored.
+// Lenient on purpose: a goal is unrecognised only when none of its words are known.
+function hasRealWord(text){
+  if(!WORDS)return true;
+  const t=text.toLowerCase().replace(/\d+(?:[.,]\d+)*[a-z]{0,3}\b/g," ");
+  for(const tok of t.match(/[a-z]+(?:'[a-z]+)*/g)||[]){
+    if(UNITS.has(tok))continue;
+    for(const w of new Set([tok,tok.replace(/'/g,""),tok.replace(/'s$/,"")])){
+      if(WORDS.has(w))return true;
+      const m=w.match(/^(.{4,}?)(?:ing|ed|es|s)$/);if(m&&WORDS.has(m[1]))return true;
+    }
+  }
+  // The English list can't judge other scripts (e.g. "走る", "café"), so any non a-z letter counts as recognised.
+  return /\p{L}/u.test(t.replace(/[a-z]/g,""));
+}
+// 0 = can't rate (no real word, XP 0), else 1 Easy / 2 Medium / 3 Hard.
 function estimateDifficulty(text){
+  if(!hasRealWord(text))return 0;
   const t=" "+text.toLowerCase().replace(/(\d),(\d)/g,"$1$2")+" ",n=parseFloat;let lvl=0,rest=t;
   const bump=x=>{lvl=Math.max(lvl,x)};
   const lim=t.match(/(?:less than|under|max(?:imum)?|at most|no more than)\s+(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?)\b/);
@@ -662,8 +683,8 @@ function autoDifficulty(){
   clearTimeout(diffTimer);
   const v=$("goalInput").value.trim();
   const d=v?estimateDifficulty(v):0;
-  $("goalDiff").className="diff-display"+(d?" d"+d:"");
-  $("goalDiff").textContent=d?`${DIFF[d]} · +${xpForDiff(d)} XP`:"Set automatically from your goal";
+  $("goalDiff").className="diff-display"+(d?" d"+d:v?" unrated":"");
+  $("goalDiff").textContent=d?`${DIFF[d]} · +${xpForDiff(d)} XP`:v?"Can't rate this. Try describing the task.":"Set automatically from your goal";
 }
 let editingId=null;
 function openGoal(category,repeat,goal){
@@ -948,6 +969,9 @@ function initReveal(){
   setTimeout(()=>document.querySelectorAll(".page.active .rv:not(.rv-in)").forEach(el=>{el.classList.add("rv-in");io.unobserve(el)}),1500);
 }
 updateTimer();render();readStepHash();checkStepReturn();initReveal();navReady=true;
+// Load the word list after first paint; if it fails, WORDS stays null and every goal is rated as before.
+function loadWords(){fetch("./words.txt").then(r=>r.ok?r.text():Promise.reject()).then(t=>{WORDS=new Set(t.split(/\s+/));if(!$("goalModal").classList.contains("hidden"))autoDifficulty()}).catch(()=>{})}
+(window.requestIdleCallback||setTimeout)(loadWords);
 document.querySelectorAll(".page").forEach(p=>p.addEventListener("animationend",e=>{if(e.target===p)p.classList.remove("entering")}));
 // A tab left open compares its release stamp (tools/stamp-version.sh) with the live one every 10 minutes and on
 // return, and reloads into a newer release — but never while someone is typing.

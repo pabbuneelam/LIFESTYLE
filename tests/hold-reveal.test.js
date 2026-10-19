@@ -223,8 +223,8 @@ t("reduced motion CSS disables reveal, hold scale and page swap",()=>{
 t("page swap only animates opacity/transform, no first-load pageIn on .page.active",()=>{
   assert(/\.page\.active\{display:block\}/.test(css));assert(/@keyframes pageSwap\{from\{opacity:0;transform:[^}]*\}to\{opacity:1;transform:none\}\}/.test(css));
 });
-t("sw cache bumped to lifestyle-v6 and activate deletes other caches",()=>{
-  assert(sw.includes('const CACHE="lifestyle-v6"'));assert(sw.includes("keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))"));
+t("sw cache bumped to lifestyle-v8 and activate deletes other caches",()=>{
+  assert(sw.includes('const CACHE="lifestyle-v8"'));assert(sw.includes("keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))"));
 });
 
 // ---------- startup wiring / nav call sites ----------

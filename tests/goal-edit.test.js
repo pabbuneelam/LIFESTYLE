@@ -11,7 +11,7 @@ function load(goals,{done=[],xp=100,view="2026-10-15"}={}){
     today:()=>"2026-10-15",viewKey:()=>view,fmtDate:k=>k,CATS:["body","mind"],CATEGORIES:{body:{name:"Body",icon:""},mind:{name:"Mind",icon:""}},
     syncGoalArea(){},autoDifficulty(){},render(){},toast:s=>toasts.push(s),uid:()=>"new"+goals.length,syncToday(){},
     doneOn:k=>state.log[k]||[],active:()=>state.goals.filter(g=>!g.archived),isDone:id=>(state.log["2026-10-15"]||[]).includes(id),
-    estimateDifficulty:n=>n.includes("hard")?3:1,xpForDiff:d=>d*10};
+    estimateDifficulty:n=>n.includes("zzz")?0:n.includes("hard")?3:1,xpForDiff:d=>d*10};
   const names=Object.keys(env).filter(k=>k!=="toasts");
   const api=new Function(...names,code+";return{openGoal,addGoal,closeGoal,get editingId(){return editingId}}")(...names.map(k=>env[k]));
   return Object.assign(api,{$,state,toasts});
@@ -110,5 +110,25 @@ t("done today, easier rename: XP drops but never below 0",()=>{
 t("name is trimmed on save",()=>{
   const a=load([{id:"g1",name:"Walk",category:"body",xp:10}]);
   a.openGoal("body",true,a.state.goals[0]);a.$("goalInput").value="  Walk 5k  ";a.addGoal();assert.strictEqual(a.state.goals[0].name,"Walk 5k");
+});
+// Unrecognised (gibberish) goals: estimateDifficulty 0 -> saved with 0 XP, never refused.
+t("add gibberish: saves with xp 0, name intact",()=>{
+  const a=load([]);a.openGoal("body",true);a.$("goalInput").value="zzz qq";a.addGoal();
+  assert.deepStrictEqual(a.state.goals[0],{id:"new0",name:"zzz qq",category:"body",xp:0});assert.strictEqual(a.state.xp,100);
+});
+t("edit real -> gibberish, done today: total XP drops by the old xp",()=>{
+  const a=load([{id:"g1",name:"hard run",category:"body",xp:30}],{done:["g1"],xp:100});
+  a.openGoal("body",true,a.state.goals[0]);a.$("goalInput").value="zzz";a.addGoal();
+  assert.strictEqual(a.state.goals[0].id,"g1");assert.strictEqual(a.state.goals[0].xp,0);assert.strictEqual(a.state.xp,70);
+});
+t("edit gibberish -> real, done today: total XP rises by the new xp",()=>{
+  const a=load([{id:"g1",name:"zzz",category:"body",xp:0}],{done:["g1"],xp:100});
+  a.openGoal("body",true,a.state.goals[0]);a.$("goalInput").value="hard run";a.addGoal();
+  assert.strictEqual(a.state.goals[0].xp,30);assert.strictEqual(a.state.xp,130);
+});
+t("edit gibberish -> real, not done: total XP unchanged",()=>{
+  const a=load([{id:"g1",name:"zzz",category:"body",xp:0}],{xp:100});
+  a.openGoal("body",true,a.state.goals[0]);a.$("goalInput").value="Walk";a.addGoal();
+  assert.strictEqual(a.state.goals[0].xp,10);assert.strictEqual(a.state.xp,100);
 });
 console.log(n+" passed");

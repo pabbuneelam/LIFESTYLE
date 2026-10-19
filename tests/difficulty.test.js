@@ -2,7 +2,9 @@
 const fs=require("fs"),path=require("path");
 const src=fs.readFileSync(path.join(__dirname,"..","app.js"),"utf8");
 const start=src.indexOf("// Hard-effort activities by area"),end=src.indexOf("const DIFF=");
-const estimate=new Function(src.slice(start,end)+";return estimateDifficulty")();
+const api=new Function(src.slice(start,end)+";return{estimateDifficulty,setWords:w=>{WORDS=w}}")(),estimate=api.estimateDifficulty;
+// Score with the real word list loaded, as in the app once words.txt has arrived.
+api.setWords(new Set(fs.readFileSync(path.join(__dirname,"..","words.txt"),"utf8").split(/\s+/)));
 const cases=require("./difficulty-cases.js"),tune={},holdout=cases.holdout;for(const set of [cases.tune,cases.holdout1_now_tuning,cases.holdout2_now_tuning])for(const[a,l]of Object.entries(set))tune[a]=tune[a]?tune[a]+"|"+l:l,L=["","E","M","H"];
 let failedAny=false;
 for(const[setName,set]of Object.entries({tune,holdout})){
