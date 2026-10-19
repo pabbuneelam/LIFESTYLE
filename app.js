@@ -122,7 +122,7 @@ function createdDay(g){
   return ms>1e12&&ms<4e12?ds(new Date(ms)):"0000-00-00";
 }
 // Area score (0–100) has to be earned over time: up to 80 for consistency over the last 30 days (goals done vs.
-// goals due, scaled by how many of those days the area was in play), plus up to 20 that grows slowly with total
+// goals due, scaled by how many of those days you did something in the area), plus up to 20 that grows slowly with total
 // completions. One perfect day is worth ~1/30 of the consistency points; a month of them earns it all.
 function statScore(c,asOf=today()){
   const life=catLifetime(c,asOf),t=asOf;
@@ -131,7 +131,7 @@ function statScore(c,asOf=today()){
   for(let k=first>addDays(t,-29)?first:addDays(t,-29);k<=t;k=addDays(k,1)){
     const sched=goalsOn(k).filter(g=>g.category===c&&createdDay(g)<=k).length,d=catDoneOn(c,k);
     const owed=k===t?d:Math.max(sched,d); // today's unfinished goals don't count against you yet
-    done+=d;due+=owed;if(owed)days++;
+    done+=d;due+=owed;if(d)days++; // a missed day only adds to due, so it can never raise the score
   }
   if(!due&&!life)return 0;
   const consistency=(due?done/due:0)*Math.min(1,days/30);
