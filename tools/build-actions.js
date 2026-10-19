@@ -24,7 +24,8 @@ spanish french german italian japanese chinese mandarin korean arabic hindi urdu
 treadmill elliptical stairmaster peloton sauna weights abs core spin
 appointment haircut chores laundry groceries errands routine session bedtime asleep checkin weighin
 bible quran rosary masjid mosque church temple taraweeh sunlight retainer protein calories gratitude gratitudes
-facetime mcat lsat gre gmat`.split(/\s+/);
+facetime mcat lsat gre gmat
+problem problems sunscreen spf multivitamin multivitamins vitamins supplements moisturizer moisturiser retinol serum creatine`.split(/\s+/);
 
 (async()=>{
   const res=await fetch(SRC);if(!res.ok)throw new Error("download failed: "+res.status);

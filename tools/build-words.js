@@ -26,9 +26,11 @@ unsubscribe journalled journalling skincare sunscreen spf retinol serum moisturi
 hydrate rehydrate hydration oatmeal smoothie smoothies matcha kombucha veggies
 pomodoro todo todos inbox anki quizlet khan coursera udemy codecademy hackerrank kaggle figma canva
 whatsapp facetime discord twitch pinterest strava fitbit peloton headspace calm notion obsidian
-pickleball stairmaster mcat lsat gmat taraweeh kegel kegels standup`.split(/\s+/);
-// Fragments left over from regex syntax in app.js (e.g. "promot(ed|ion)", "boundar", "organi[sz]e"); not words.
-const JUNK=new Set(["promot","boundar","organi","memori","snoo","raw","ed","ion","imum","sz","zs","df","hj","ies","ith","nums","suf","toks","tv"]);
+pickleball stairmaster mcat lsat gmat taraweeh jummah kegel kegels standup`.split(/\s+/);
+// Fragments left over from regex syntax in app.js (e.g. "promot(ed|ion)", "boundar", "organi[sz]e", "kilomet"); not words.
+const JUNK=new Set(["promot","boundar","organi","memori","snoo","imum","sz","kilomet"]);
+// Keyboard-row mashes the dictionary lists as words; typed as a goal ("Qwerty walk") they are gibberish.
+const MASH=new Set(["qwerty"]);
 
 const words=s=>s.toLowerCase().match(/[a-z]+/g)||[];
 const app=fs.readFileSync(path.join(ROOT,"app.js"),"utf8");
@@ -38,9 +40,12 @@ function extras(){
   const out=[...HAND];
   const CATEGORIES=new Function(cut("const CATEGORIES=","const CATS=")+";return CATEGORIES")();
   for(const c of Object.values(CATEGORIES))for(const idea of c.ideas)out.push(...words(idea));
-  // Literal runs from the difficulty regexes, with escapes (\b, \d, \w) removed first.
-  const rules=cut("const AREA_HARD_RE=","function estimateDifficulty").replace(/\/\/.*$/gm,"").replace(/\\[a-z]/gi," ");
-  out.push(...(rules.replace(/String\.raw|new RegExp|const [A-Z_]+=|join/g," ").match(/[a-z]{2,}/g)||[]));
+  // Literal runs from the difficulty regexes only (the named *_RE constants and the regex literals inside
+  // estimateDifficulty), with escapes (\b, \d, \w) removed first, so app.js identifiers never leak in.
+  const named=new Function(cut("// Hard-effort activities by area","const DIFF=")+
+    ";return[AREA_HARD_RE,INTENSE_RE,HARD_RE,EASY_RE,ABSTAIN_RE,DURATION_RE,TASK_RE]")().map(r=>r.source);
+  const literals=cut("function estimateDifficulty","const DIFF=").match(/(?<=[(=,:!&|?]\s*)\/(?![/*])(?:\\.|\[(?:\\.|[^\]\\])*\]|[^/\\\n[])+\/[gimsuy]*/g)||[];
+  for(const re of [...named,...literals])out.push(...(re.replace(/\\[a-z]/gi," ").match(/[a-z]{2,}/g)||[]));
   const cases=require(path.join(ROOT,"tests","difficulty-cases.js"));
   for(const set of Object.values(cases))for(const list of Object.values(set))out.push(...words(list.replace(/(^|\|)[EMH] /g," ")));
   return out.filter(w=>w.length>1&&!JUNK.has(w));
@@ -52,7 +57,7 @@ function extras(){
   if(sep<0)throw new Error("unexpected download: no notice/word separator");
   const notice=text.slice(0,sep),rev=(notice.match(/ESDB Git Revision:.*\[(\w+)\]/)||[])[1];
   if(rev!==ESDB_REV)throw new Error("ESDB revision is "+rev+", pinned "+ESDB_REV+"; review the new list, then update ESDB_REV");
-  const dict=text.slice(sep+5).split("\n").filter(w=>/^[A-Za-z][a-z]*$/.test(w)).map(w=>w.toLowerCase()).filter(w=>w.length>1||w==="a"||w==="i");
+  const dict=text.slice(sep+5).split("\n").filter(w=>/^[A-Za-z][a-z]*$/.test(w)).map(w=>w.toLowerCase()).filter(w=>(w.length>1||w==="a"||w==="i")&&!MASH.has(w));
   const set=new Set([...dict,...extras()]);
   const list=[...set].sort();
   fs.writeFileSync(path.join(ROOT,"words.txt"),list.join("\n")+"\n");

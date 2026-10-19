@@ -7578,7 +7578,6 @@ ascriptions
 ascus
 asdic
 asdics
-ase
 aseity
 asepses
 asepsis
@@ -27476,7 +27475,6 @@ conspire
 conspired
 conspires
 conspiring
-const
 constable
 constables
 constabularies
@@ -38613,6 +38611,7 @@ djibouti
 dkl
 dm
 dmitri
+dms
 dnepr
 dneprodzerzhinsk
 dnepropetrovsk
@@ -40838,7 +40837,6 @@ eaglewoods
 eagre
 eagres
 eakins
-eal
 ealdorman
 ealing
 ear
@@ -45040,7 +45038,6 @@ estuaries
 estuarine
 estuary
 esurient
-et
 eta
 etagere
 etageres
@@ -70793,6 +70790,7 @@ jumbo
 jumbos
 jumbuck
 jumbucks
+jummah
 jumna
 jump
 jumpcut
@@ -71690,7 +71688,6 @@ keyways
 keyword
 keywords
 kg
-kgs
 khabarovsk
 khachaturian
 khaddar
@@ -72259,7 +72256,6 @@ klystron
 klystrons
 km
 kmart
-kms
 kn
 knack
 knacker
@@ -90929,7 +90925,6 @@ orcinol
 orcinols
 orcs
 orcus
-ord
 ordain
 ordained
 ordainer
@@ -93081,7 +93076,6 @@ owen
 owenism
 owens
 owensboro
-ower
 owes
 owing
 owl
@@ -105640,7 +105634,6 @@ quoting
 quran
 quranic
 qurans
-qwerty
 ra
 rabat
 rabato
@@ -133239,7 +133232,6 @@ toils
 toilsome
 toilworn
 tojo
-tok
 tokamak
 tokamaks
 tokay

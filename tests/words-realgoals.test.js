@@ -17,14 +17,14 @@ const SINGLE=["Affirmations","Basketball","Bouldering","Breathwork","Creatine","
 
 t("realistic multi-word goals are all rated",()=>{const u=unrated(MULTI);console.log("     "+u.length+"/"+MULTI.length+" unrated");assert.deepStrictEqual(u,[])});
 t("verb + a name or word missing from words.txt is rated (Call Priya, Text Aarav, Pray Dhuhr)",()=>{
-  assert.deepStrictEqual(unrated(["Call Priya","Text Aarav","Call Ammi","Visit Nani","FaceTime Jayden","Pray Dhuhr","Feed Mochi","Run with Kwame","Study with Mei","Watch Huberman","Jummah prayer"]),[]);
+  assert.deepStrictEqual(unrated(["Call Priya","Text Aarav","Call Ammi","Visit Nani","FaceTime Jayden","Pray Dhuhr","Feed Mochi","Run with Kwame","Study with Mei","Watch Huberman","Jummah prayer","Math problems 20"]),[]);
 });
 t("activity noun + a duration is rated (Guitar 30 min, Spanish 15 min, Tennis 1 hour)",()=>{
   assert.deepStrictEqual(unrated(["Guitar 30 min","Piano 20 min","Spanish 15 min","Chess 30 min","Tennis 1 hour","Treadmill 20 min","Sauna 15 min","Outside 30 min","Vocab 15 min","MCAT 2 hours"]),[]);
 });
 // Round 4: no action word, no duration, no name after a verb. Accepted cost of the user's "must contain an action word" rule.
 t("no-action noun phrases stay unrated (accepted cost, Round 4)",()=>{
-  assert.deepStrictEqual(["Airplane mode","Airplane mode at 10","Coffee with Sam","Lip balm","Math problems 20","Office hours"].filter(rate),[]);
+  assert.deepStrictEqual(["Airplane mode","Airplane mode at 10","Coffee with Sam","Lip balm","Office hours"].filter(rate),[]);
 });
 t("Round 4: a name only counts after an action word; a duration is an action; X not Y is an abstain",()=>{
   for(const g of ["Call Priya","Jummah prayer","Run with Kwame","Guitar 30 min","Outside 30 min","Vocab 20m","Weigh in","Check-in with mom","Chest day","Movie night","Tea not coffee"])assert(rate(g)>0,g);

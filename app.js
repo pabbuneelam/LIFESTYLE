@@ -649,7 +649,8 @@ function isTask(text){
   const words=toks.filter(w=>inList(WORDS,w)||inList(ACTIONS,w));
   const action=words.some(w=>inList(ACTIONS,w))||[DURATION_RE,ABSTAIN_RE,TASK_RE,HARD_RE,AREA_HARD_RE,EASY_RE,INTENSE_RE].some(r=>r.test(" "+t+" "));
   // With an action word, a Capitalised unknown token is a name ("Call Priya", "Feed Mochi"); lowercase "asdf run" stays unrated.
-  const names=action?(text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g)||[]).filter(w=>/^[A-Z]/.test(w)&&!inList(WORDS,w.toLowerCase())&&!inList(ACTIONS,w.toLowerCase())).length:0;
+  // The first word never counts: phone keyboards capitalise it, so "Asdf run" is gibberish, not a name.
+  const names=action?(text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g)||[]).slice(1).filter(w=>/^[A-Z]/.test(w)&&!inList(WORDS,w.toLowerCase())&&!inList(ACTIONS,w.toLowerCase())).length:0;
   return action&&nums+words.length+names+(/\b(?:weigh|check)[- ]in\b/.test(t)?1:0)>=2;
 }
 // 0 = can't rate (no real word, or not a task), XP 0; else 1 Easy / 2 Medium / 3 Hard.

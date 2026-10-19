@@ -2183,6 +2183,7 @@ creak
 cream
 crease
 create
+creatine
 credit
 creep
 cremate
@@ -5885,7 +5886,9 @@ modulate
 moil
 moisten
 moisturise
+moisturiser
 moisturize
+moisturizer
 mold
 molder
 molest
@@ -5976,6 +5979,8 @@ mulct
 mull
 multiplied
 multiply
+multivitamin
+multivitamins
 mumble
 mummed
 mummified
@@ -7080,6 +7085,8 @@ prize
 prizefight
 probate
 probe
+problem
+problems
 proceed
 process
 proclaim
@@ -7830,6 +7837,7 @@ rethought
 retick
 reticulate
 retie
+retinol
 retire
 retold
 retook
@@ -8313,6 +8321,7 @@ serialize
 sermonise
 sermonize
 serrate
+serum
 serve
 service
 session
@@ -8900,6 +8909,7 @@ spelunk
 spend
 spent
 spew
+spf
 sphacelate
 spice
 spied
@@ -9328,6 +9338,7 @@ sunken
 sunlight
 sunned
 sunning
+sunscreen
 suntan
 sup
 superannuate
@@ -9349,6 +9360,7 @@ supping
 supplant
 supple
 supplement
+supplements
 supplicate
 supplied
 supply
@@ -10383,6 +10395,7 @@ vitalise
 vitalize
 vitaminise
 vitaminize
+vitamins
 vitiate
 vitrified
 vitrify
