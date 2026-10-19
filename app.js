@@ -972,7 +972,7 @@ function ptrSet(p,settle){
   ptr.style.transform=`translateY(${p}px)`;ptr.style.opacity=String(Math.min(1,p/PTR_AT));
   if(!calm())ptr.firstChild.style.transform=`rotate(${p*3}deg)`;
 }
-const ptrCancel=()=>{ptrY=null;if(pull){pull=0;ptrSet(0,true)}};
+function ptrCancel(){ptrY=null;if(pull){pull=0;ptrSet(0,true)}}
 async function refresh(){
   if(refreshing)return;refreshing=true;
   const t0=Date.now();ptrSet(PTR_HOLD,true);ptr.classList.add("spin");if(calm())toast("Refreshing…");
@@ -1009,7 +1009,7 @@ document.addEventListener("touchmove",e=>{
   if(dy<=0)return ptrCancel();
   e.preventDefault();pull=Math.min(PTR_MAX,dy*.5);ptrSet(pull);
 },{passive:false});
-const ptrEnd=e=>{if(ptrY===null)return;ptrY=null;if(e.type==="touchend"&&pull>=PTR_AT)refresh();else ptrCancel()};
+function ptrEnd(e){if(ptrY===null)return;ptrY=null;if(e.type==="touchend"&&pull>=PTR_AT)refresh();else ptrCancel()}
 document.addEventListener("touchend",ptrEnd);document.addEventListener("touchcancel",ptrEnd);
 // Check for a new version on every launch and resume; reload once it takes over, but never while someone is typing.
 if("serviceWorker"in navigator){
