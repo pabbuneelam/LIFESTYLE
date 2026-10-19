@@ -66,7 +66,7 @@ t("initReveal skips .rv when CSS scroll-driven animations are supported (single 
   assert(fn.includes('window.CSS&&window.CSS.supports&&window.CSS.supports("animation-timeline","view()")'));
   assert.strictEqual((fn.match(/\)return;/g)||[]).length,1);
 });
-t("sw cache is lifestyle-v6",()=>assert(sw.includes('const CACHE="lifestyle-v6"')));
+t("sw cache is lifestyle-v7",()=>assert(sw.includes('const CACHE="lifestyle-v7"')));
 t("index.html asset stamps match and moved past 20261015172805",()=>{
   const s=html.match(/style\.css\?v=(\d+)/)[1],a=html.match(/app\.js\?v=(\d+)/)[1];
   assert.strictEqual(s,a);assert.notStrictEqual(s,"20261015172805");
