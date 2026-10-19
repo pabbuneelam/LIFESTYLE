@@ -206,4 +206,10 @@ button.wk{background:none;border:0;padding:0;font:inherit;cursor:pointer;-webkit
 .page.entering{animation:pageSwap .3s var(--ease) both}
 @keyframes pageSwap{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.page.entering{animation:none}}
+/* ---------- launch intro: wordmark sharpens in, then the overlay fades to reveal the already-rendered app (900ms total) ---------- */
+#launch{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;pointer-events:none;animation:launchOut .3s ease-out .6s both}
+.launch-mark{font-size:clamp(26px,8vw,40px);font-weight:900;letter-spacing:-.04em;color:var(--text);animation:launchIn .45s var(--ease) both}
+@keyframes launchIn{from{opacity:0;transform:scale(.92);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes launchOut{to{opacity:0}}
+@media(prefers-reduced-motion:reduce){#launch{display:none}}
 @media(prefers-reduced-motion:no-preference){@supports(animation-timeline:view()){.topbar #greeting{transform-origin:left center;animation:ttlShrink linear both;animation-timeline:scroll(root block);animation-range:0px 64px}.topbar .eyebrow{animation:ttlFade linear both;animation-timeline:scroll(root block);animation-range:0px 36px}.topbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line-strong);pointer-events:none;animation:ttlLine linear both;animation-timeline:scroll(root block);animation-range:0px 64px}.page>.panel,.stats>.stat,.lab-tab>.panel{--panel:rgba(17,17,22,.92);backdrop-filter:none;-webkit-backdrop-filter:none;transform-origin:center top;animation:sdIn linear both,sdOut linear both,sdDrift linear both;animation-timeline:view(block 96px 0px),view(block 96px 0px),view(block 96px 0px);animation-range:entry 0% entry 55%,exit 60% exit 100%,cover 0% cover 100%}@keyframes ttlShrink{to{scale:.65}}@keyframes ttlFade{to{opacity:0}}@keyframes ttlLine{from{opacity:0}to{opacity:1}}@keyframes sdIn{from{opacity:.4;scale:.94}}@keyframes sdOut{to{opacity:.7;scale:.98}}@keyframes sdDrift{from{translate:0 -6px}to{translate:0 6px}}}}
