@@ -29,7 +29,7 @@ t("launch removal: own animationend only, 1500ms safety net, immediate under red
   assert.strictEqual(a.timers[0][1],1500);
 }),
 t("cloud.js exposes sync on the bridge; SW cache bumped",()=>{
-  assert(/\n\}\nL\.sync=sync;/.test(cloud));assert(sw.includes('const CACHE="lifestyle-v7"'));
+  assert(/\n\}\nL\.sync=sync;/.test(cloud));assert(sw.includes('const CACHE="lifestyle-v8"'));
 }),
 ];
 
