@@ -67,7 +67,7 @@ t("a number with its unit is one token: 'Run 5 km' is run+5km; '5 km' alone has 
 t("known limit: noun pairs with a noun-verb still rate",()=>{for(const g of ["banana bread","blue sky","table 5"])assert(api.estimateDifficulty(g)>0,g)});
 t("unrated goal earns 0 XP",()=>{assert.strictEqual(xpForDiff(api.estimateDifficulty("asdfgh")),0);assert.strictEqual(xpForDiff(api.estimateDifficulty("banana")),0)});
 t("every idea in every area is rated (never 'Can't rate')",()=>{
-  for(const c of Object.values(CATEGORIES))for(const idea of c.ideas)assert(api.estimateDifficulty(idea)>0,idea);
+  for(const c of Object.values(CATEGORIES))for(const idea of Object.values(c.ideas).flat())assert(api.estimateDifficulty(idea)>0,idea);
 });
 t("every goal in tests/difficulty-cases.js is rated",()=>{
   const cases=require("./difficulty-cases.js"),bad=[];
